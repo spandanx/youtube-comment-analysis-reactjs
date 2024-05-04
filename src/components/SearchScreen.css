@@ -1,0 +1,42 @@
+/* .videoitem-enter {
+    opacity: 0;
+}
+.videoitem-enter-active {
+    opacity: 1;
+    transition: opacity 2000ms;
+}
+.videoitem-exit {
+    opacity: 1;
+}
+.videoitem-exit-active {
+    opacity: 0;
+    transition: opacity 2000ms;
+} */
+/* .videocustom {
+    transition-property: width;
+    transition-duration: 2s;
+} */
+
+.videocustom {
+    transition: height .4s ease;
+    height: 0;
+    overflow: hidden;
+  }
+  
+  .videocustom.show {
+    height: 150vh;
+  }
+
+.downarray:hover {
+    cursor: pointer;
+}
+
+.analysis-list {
+    transition: height .4s ease;
+    height: 0;
+    overflow: hidden;
+}
+
+.analysis-list.show {
+    height: 100vh;
+}
