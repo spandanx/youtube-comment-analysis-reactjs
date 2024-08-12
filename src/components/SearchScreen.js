@@ -34,7 +34,75 @@ const SearchScreen = () => {
     const [videoArray, setVideoArray] = useState([]);
     const [videoSelectMap, setVideoSelectMap] = useState({});
     const [videoSelectMapLength, setVideoSelectMapLength] = useState(0);
-    const [videoAnalysis, setVideoAnalysis] = useState({});
+    // const [videoAnalysis, setVideoAnalysis] = useState({});
+    const [videoAnalysis, setVideoAnalysis] = useState({"summary": "ka Cedar inn is most of the beautiful snd nice hotel I very nice and informative Easy hotel ka name tell me where bike parking avelbel ho Best part ye h ki unmarried couple can also go h Darjeeling me strength room the Beautiful keep it up In one room can we stay 5 person Hi Anjali, Just confused with Summit Montana suites and spa and Yashshree Sanderling which is better.",
+    "questions": [
+      {
+        "question": "Oct main How about weather?",
+        "answer": {
+          "score": 0.0618143193423748,
+          "start": 509,
+          "end": 512,
+          "answer": "two"
+        }
+      },
+      {
+        "question": "Kitchen I am not?",
+        "answer": {
+          "score": 0.048960890620946884,
+          "start": 346,
+          "end": 400,
+          "answer": "Summit Montana suites and spa and\nYashshree Sanderling"
+        }
+      },
+      {
+        "question": "How to book ?",
+        "answer": {
+          "score": 0.19173763692378998,
+          "start": 509,
+          "end": 512,
+          "answer": "two"
+        }
+      },
+      {
+        "question": "What if agar October me planning hollow to approximately how much will it cost",
+        "answer": {
+          "score": 0.6830801367759705,
+          "start": 509,
+          "end": 512,
+          "answer": "two"
+        }
+      },
+      {
+        "question": "Few hotels from this list have very very bad reviews. How can you say those best?",
+        "answer": {
+          "score": 0.09604348987340927,
+          "start": 43,
+          "end": 55,
+          "answer": "ka\nCedar inn"
+        }
+      },
+      {
+        "question": "Any problem for unmarried couple in single room?",
+        "answer": {
+          "score": 0.037298500537872314,
+          "start": 262,
+          "end": 282,
+          "answer": "Beautiful keep it up"
+        }
+      },
+      {
+        "question": "Great ",
+        "answer": {
+          "score": 0.5304459929466248,
+          "start": 380,
+          "end": 400,
+          "answer": "Yashshree Sanderling"
+        }
+      }
+    ]
+    });
+    
 
     const [inProp, setInProp] = useState(false);
     const nodeRef = useRef(null);
@@ -152,6 +220,25 @@ const SearchScreen = () => {
     setVideoSelectMap(localVideoMap);
     console.log(localVideoMap);
 
+  }
+
+  const updateVideoMapAll = (videoArray) => {
+    // event.preventDefault();
+    console.log("calling updateVideoMapAll()");
+    let localVideoMap = videoSelectMap;
+    videoArray.map((videoItem)=>{
+      let videoId = videoItem.videoId;
+      if (videoId in localVideoMap){
+        delete localVideoMap[videoId];
+      }
+      else{
+        localVideoMap[videoId] = "true";
+      }
+    }
+    );
+    console.log(localVideoMap);
+    setVideoSelectMapLength(Object.keys(videoSelectMap).length);
+    setVideoSelectMap(localVideoMap);
   }
 
   const displayAnimation = (event) => {
@@ -277,7 +364,10 @@ const getVideoList = () => {
   return (
   // <CSSTransition in={anim} timeout={2000} classNames="videoitem">
     // <div class={`videocustom ${toggle ? 'show' : ''}`}>
-    <div class={`videocustom ${toggleVideoList ? 'show' : ''}`}>
+    <div class={`videocustom ${toggleVideoList ? 'show' : ''}`} style={{"overflow-y": "scroll"}}>
+      <input value = "test" class = "align-items-stretch" type = "checkbox" onChange = {(event) => updateVideoMapAll(videoArray)}/>
+      {/*   */}
+      <hr style={{ color: "white", backgroundColor: "grey", height: "2px" }} />
       {videoArray.map((videoItem)=>(
 
       <div class="d-flex align-items-center">
@@ -299,8 +389,8 @@ const getVideoList = () => {
 
 const getAnalysisForm = () => {
   return (
-    <div>
-        <div class="form-group row my-3 justify-content-center">
+    <div class="form-group row my-3 py-3 justify-content-center">
+        <div class="d-flex align-items-center">
             <div class="col-sm-auto">
                 <button disabled={videoSelectMapLength==0} class="btn btn-success mx-1" onClick={(event) => analyzeVideoInformation(event)}>Get Analysis</button>
             </div>
@@ -314,17 +404,16 @@ const getAnalysisForm = () => {
         </div>
         {Object.keys(videoAnalysis).length>0 &&
           <div>
-            <hr style={{ color: "white", backgroundColor: "grey", height: "2px" }} />
+            <hr style={{ color: "white", backgroundColor: "grey", height: "2px" }}/>
             {getDownArrowAnalysisList()}
         </div>
         }
-        <div class={`analysis-list ${toggleAnalysisList ? 'show' : ''}`}>
+        <div class={`analysis-list ${toggleAnalysisList ? 'show' : ''}`} style={{"overflow-y": "scroll"}}>
             {Object.keys(videoAnalysis).length>0 && 
             <div class="col">
               <div class="text-center">SUMMARY</div>
               <hr style={{ color: "white", backgroundColor: "grey", height: "2px" }} />
               <div class="text-center">{videoAnalysis.summary}</div>
-              {/* <div class="text-center col-md-12 py-8">{videoAnalysis.summary}</div> */}
             </div>
             }
             <hr style={{ color: "white", backgroundColor: "grey", height: "2px" }} />
@@ -337,12 +426,15 @@ const getAnalysisForm = () => {
           </div>
 
           {Object.keys(videoAnalysis).length>0 ? videoAnalysis.questions.map((question)=>(
-            <div class="d-flex align-items-center">
-              <div class="p-2 bd-highlight">
+            <div class="p-flex">
+              <div class="d-flex align-items-center">
                 <TbMessageQuestion color="red"/>
+                <a class="nav-link h5">{question.question}</a>
               </div>
-              <div class="p-2 bd-highlight">
-                <a class="nav-link">{question}</a>
+              <div class="d-flex align-items-center">
+                <div class="p-2 bd-highlight mx-4">
+                  <a>{question.answer.answer}</a>
+                </div>
               </div>
           </div>
           ))
@@ -381,7 +473,7 @@ const getVideoListForm = () => {
 
   return (
     <div class="form-horizontal container" role="form">
-        <div class="form-group row my-3 justify-content-between">
+        <div class="form-group justify-content-between">
           <div class="col-md-4">
           </div>
           <div class="col-md-auto">Search on Youtube</div>
