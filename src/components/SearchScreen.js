@@ -40,6 +40,7 @@ const SearchScreen = () => {
     const [videoSelectMapLength, setVideoSelectMapLength] = useState(0);
     const [videoAnalysis, setVideoAnalysis] = useState({});
     const [videoAnalysisError, setVideoAnalysisError] = useState("");
+    const [videoSearchError, setVideoSearchError] = useState("");
     // const [videoAnalysis, setVideoAnalysis] = useState({"summary": "ka Cedar inn is most of the beautiful snd nice hotel I very nice and informative Easy hotel ka name tell me where bike parking avelbel ho Best part ye h ki unmarried couple can also go h Darjeeling me strength room the Beautiful keep it up In one room can we stay 5 person Hi Anjali, Just confused with Summit Montana suites and spa and Yashshree Sanderling which is better.",
     // "questions": [
     //   {
@@ -165,6 +166,7 @@ const SearchScreen = () => {
     fetch(queryUrl)
         .then(response => response.json())
         .then(data => {
+          setVideoSearchError("");
           let firstTimeLoad = false;
           if (videoArray.length == 0){
             firstTimeLoad = true;
@@ -185,6 +187,7 @@ const SearchScreen = () => {
         .catch(error => {
           console.log("ERROR ");
           console.log(error);
+          setVideoSearchError("Error! Could not process the search request!");
       });
   }
 
@@ -219,6 +222,11 @@ const SearchScreen = () => {
         setVideoAnalysis(data);
         setVideoAnalysisError("");
        }
+       else{
+        console.log("ERROR Occurred in response ");
+        setAnalysisLoading(false);
+        setVideoAnalysisError("Error! Could not process the analysis request!");
+       }
       //  console.log("lengths - ");
       //  console.log(Object.keys(videoAnalysis).length);
       //  console.log(isNaN(videoAnalysis.question));
@@ -230,8 +238,8 @@ const SearchScreen = () => {
         // console.log(!error.ok);
       console.log("ERROR Occurred - ");
       console.error(error);
-      setVideoAnalysisError("Facing error while analyzing data!");
       setAnalysisLoading(false);
+      setVideoAnalysisError("Error! Could not process the analysis request!");
       console.log(Object.keys(videoAnalysis).length);
       console.log(isNaN(videoAnalysis.question));
       console.log(videoAnalysis.questions?.length);
@@ -281,13 +289,6 @@ const SearchScreen = () => {
 
   const getSearchForm = () => {
     return (
-      // <div class="form-group row my-3 justify-content-between">
-      //     <div class="col-md-4">
-      //     </div>
-      //     <div class="col-md-auto">Search on Youtube</div>
-      //     <div class="col-md-4">
-      //       </div>
-      //   </div>
     <form class="form-horizontal container" role="form">
     <div class="form-group row my-3">
       <div class="col-sm-11">
@@ -335,7 +336,6 @@ const getWarningMessage = (message) => {
   return (
   <form class="form-horizontal container" role="form">
     <div class="form-group row mx-3 justify-content-center" style={{color:"black"}}>
-      Sorry, could not process the request!
     </div>
     <div class="form-group row my-3 justify-content-center" style={{color:"black"}}>
         <div class="col-sm-auto">
@@ -501,6 +501,9 @@ const getAnalysisForm = () => {
 const getVideoListForm = () => {
   return (
     <div>
+          {videoSearchError.length > 0 && 
+            getWarningMessage(videoSearchError)
+          }
           {videoArray.length > 0 ? 
             <div class="col">
                 <div class="text-center">VIDEOS</div>
