@@ -5,11 +5,15 @@ import { BsExclamation } from "react-icons/bs";
 import { TbMessageQuestion } from "react-icons/tb";
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { useNavigate } from "react-router-dom";
-import { BallTriangle } from 'react-loader-spinner';
+// import { useNavigate } from "react-router-dom";
+// import { BallTriangle } from 'react-loader-spinner';
 import { FaAnglesDown, FaAnglesUp } from "react-icons/fa6";
+// import { IoWarningSharp } from "react-icons/io5";
+// import { Bars } from 'react-loading-icons'
+import { BiError } from "react-icons/bi";
 // import {Animation, Button} from 'rsuite';
 import './SearchScreen.css';
+import './styles/LoadingIcon.css';
 
 // import {
 //   Container,
@@ -34,74 +38,75 @@ const SearchScreen = () => {
     const [videoArray, setVideoArray] = useState([]);
     const [videoSelectMap, setVideoSelectMap] = useState({});
     const [videoSelectMapLength, setVideoSelectMapLength] = useState(0);
-    // const [videoAnalysis, setVideoAnalysis] = useState({});
-    const [videoAnalysis, setVideoAnalysis] = useState({"summary": "ka Cedar inn is most of the beautiful snd nice hotel I very nice and informative Easy hotel ka name tell me where bike parking avelbel ho Best part ye h ki unmarried couple can also go h Darjeeling me strength room the Beautiful keep it up In one room can we stay 5 person Hi Anjali, Just confused with Summit Montana suites and spa and Yashshree Sanderling which is better.",
-    "questions": [
-      {
-        "question": "Oct main How about weather?",
-        "answer": {
-          "score": 0.0618143193423748,
-          "start": 509,
-          "end": 512,
-          "answer": "two"
-        }
-      },
-      {
-        "question": "Kitchen I am not?",
-        "answer": {
-          "score": 0.048960890620946884,
-          "start": 346,
-          "end": 400,
-          "answer": "Summit Montana suites and spa and\nYashshree Sanderling"
-        }
-      },
-      {
-        "question": "How to book ?",
-        "answer": {
-          "score": 0.19173763692378998,
-          "start": 509,
-          "end": 512,
-          "answer": "two"
-        }
-      },
-      {
-        "question": "What if agar October me planning hollow to approximately how much will it cost",
-        "answer": {
-          "score": 0.6830801367759705,
-          "start": 509,
-          "end": 512,
-          "answer": "two"
-        }
-      },
-      {
-        "question": "Few hotels from this list have very very bad reviews. How can you say those best?",
-        "answer": {
-          "score": 0.09604348987340927,
-          "start": 43,
-          "end": 55,
-          "answer": "ka\nCedar inn"
-        }
-      },
-      {
-        "question": "Any problem for unmarried couple in single room?",
-        "answer": {
-          "score": 0.037298500537872314,
-          "start": 262,
-          "end": 282,
-          "answer": "Beautiful keep it up"
-        }
-      },
-      {
-        "question": "Great ",
-        "answer": {
-          "score": 0.5304459929466248,
-          "start": 380,
-          "end": 400,
-          "answer": "Yashshree Sanderling"
-        }
-      }
-    ]
-    });
+    const [videoAnalysis, setVideoAnalysis] = useState({});
+    const [videoAnalysisError, setVideoAnalysisError] = useState("");
+    // const [videoAnalysis, setVideoAnalysis] = useState({"summary": "ka Cedar inn is most of the beautiful snd nice hotel I very nice and informative Easy hotel ka name tell me where bike parking avelbel ho Best part ye h ki unmarried couple can also go h Darjeeling me strength room the Beautiful keep it up In one room can we stay 5 person Hi Anjali, Just confused with Summit Montana suites and spa and Yashshree Sanderling which is better.",
+    // "questions": [
+    //   {
+    //     "question": "Oct main How about weather?",
+    //     "answer": {
+    //       "score": 0.0618143193423748,
+    //       "start": 509,
+    //       "end": 512,
+    //       "answer": "two"
+    //     }
+    //   },
+    //   {
+    //     "question": "Kitchen I am not?",
+    //     "answer": {
+    //       "score": 0.048960890620946884,
+    //       "start": 346,
+    //       "end": 400,
+    //       "answer": "Summit Montana suites and spa and\nYashshree Sanderling"
+    //     }
+    //   },
+    //   {
+    //     "question": "How to book ?",
+    //     "answer": {
+    //       "score": 0.19173763692378998,
+    //       "start": 509,
+    //       "end": 512,
+    //       "answer": "two"
+    //     }
+    //   },
+    //   {
+    //     "question": "What if agar October me planning hollow to approximately how much will it cost",
+    //     "answer": {
+    //       "score": 0.6830801367759705,
+    //       "start": 509,
+    //       "end": 512,
+    //       "answer": "two"
+    //     }
+    //   },
+    //   {
+    //     "question": "Few hotels from this list have very very bad reviews. How can you say those best?",
+    //     "answer": {
+    //       "score": 0.09604348987340927,
+    //       "start": 43,
+    //       "end": 55,
+    //       "answer": "ka\nCedar inn"
+    //     }
+    //   },
+    //   {
+    //     "question": "Any problem for unmarried couple in single room?",
+    //     "answer": {
+    //       "score": 0.037298500537872314,
+    //       "start": 262,
+    //       "end": 282,
+    //       "answer": "Beautiful keep it up"
+    //     }
+    //   },
+    //   {
+    //     "question": "Great ",
+    //     "answer": {
+    //       "score": 0.5304459929466248,
+    //       "start": 380,
+    //       "end": 400,
+    //       "answer": "Yashshree Sanderling"
+    //     }
+    //   }
+    // ]
+    // });
     
 
     const [inProp, setInProp] = useState(false);
@@ -176,13 +181,18 @@ const SearchScreen = () => {
 
           console.log("data - ");
           console.log(data);
-        });
+        })
+        .catch(error => {
+          console.log("ERROR ");
+          console.log(error);
+      });
   }
 
   const analyzeVideoInformation = (event) => {
     event.preventDefault();
     setAnalysisLoading(true);
     setToggleAnalysisList(false);
+    setVideoAnalysisError("");
     console.log("analyzing - " + searchText);
     // var queryUrl = commentAnalysisUrl;
     console.log({
@@ -198,12 +208,34 @@ const SearchScreen = () => {
        })
      }).then(response => response.json())
      .then(data => {
+        // console.log("Printing Status Response");
+        // console.log(data.status);
+        // console.log(!data.ok);
        console.log("analyzed results - ");
        console.log(data);
-       setAnalysisLoading(false);
-       setToggleAnalysisList(true);
-       setVideoAnalysis(data);
-     });
+       if (!isNaN(videoAnalysis.question)){
+        setAnalysisLoading(false);
+        setToggleAnalysisList(true);
+        setVideoAnalysis(data);
+        setVideoAnalysisError("");
+       }
+      //  console.log("lengths - ");
+      //  console.log(Object.keys(videoAnalysis).length);
+      //  console.log(isNaN(videoAnalysis.question));
+      //  console.log(videoAnalysis.questions?.length);
+     })
+     .catch(error => {
+        // console.log("Printing Status - ERROR");
+        // console.log(error.status);
+        // console.log(!error.ok);
+      console.log("ERROR Occurred - ");
+      console.error(error);
+      setVideoAnalysisError("Facing error while analyzing data!");
+      setAnalysisLoading(false);
+      console.log(Object.keys(videoAnalysis).length);
+      console.log(isNaN(videoAnalysis.question));
+      console.log(videoAnalysis.questions?.length);
+    });
   }
 
   const updateVideoMap = (videoId) => {
@@ -276,11 +308,12 @@ const SearchScreen = () => {
 const getLoadingAnimation = () => {
   return (
   <form class="form-horizontal container" role="form">
-    <div class="form-group row my-3 justify-content-between">
-      <div class="col-sm-5">
+    <div class="form-group row my-3 justify-content-center">
+      <div class="col-sm-auto">
       </div>
       <div class="col-sm-auto">
-          <BallTriangle
+        <div class="loader"></div>
+          {/* <BallTriangle
             height={100}
             width={100}
             radius={5}
@@ -289,9 +322,28 @@ const getLoadingAnimation = () => {
             wrapperStyle={{}}
             wrapperClass=""
             visible={true}
-            />
+            /> */}
           </div>
-        <div class="col-sm-5">
+        <div class="col-sm-auto">
+      </div>
+    </div>
+  </form>
+  );
+}
+
+const getWarningMessage = (message) => {
+  return (
+  <form class="form-horizontal container" role="form">
+    <div class="form-group row mx-3 justify-content-center" style={{color:"black"}}>
+      Sorry, could not process the request!
+    </div>
+    <div class="form-group row my-3 justify-content-center" style={{color:"black"}}>
+        <div class="col-sm-auto">
+        </div>
+        <div class="col-sm-auto">
+          {message}
+          </div>
+        <div class="col-sm-auto">
       </div>
     </div>
   </form>
@@ -396,11 +448,12 @@ const getAnalysisForm = () => {
             </div>
         </div>
         <div class="d-flex align-items-center">
-            {analysisLoading ? 
+            {analysisLoading &&  
               getLoadingAnimation()
-            :
-            <></>  
-          }
+            }
+            {videoAnalysisError.length > 0 && 
+              getWarningMessage(videoAnalysisError)
+            }
         </div>
         {Object.keys(videoAnalysis).length>0 &&
           <div>
@@ -425,7 +478,7 @@ const getAnalysisForm = () => {
               }
           </div>
 
-          {Object.keys(videoAnalysis).length>0 ? videoAnalysis.questions.map((question)=>(
+          {(Object.keys(videoAnalysis).length>0 && videoAnalysis.questions.length>0) ? videoAnalysis.questions.map((question)=>(
             <div class="p-flex">
               <div class="d-flex align-items-center">
                 <TbMessageQuestion color="red"/>
