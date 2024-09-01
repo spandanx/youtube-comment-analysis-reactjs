@@ -255,7 +255,7 @@ const SearchScreen = () => {
   const analyzeVideoInformation = (event) => {
     event.preventDefault();
     getSummaryInformation(event);
-    // getQuestionAnswer(event);
+    getQuestionAnswer(event);
   }
 
   const getSummaryInformation = (event) => {
@@ -326,6 +326,7 @@ const SearchScreen = () => {
     setQALoading(true);
     setQAExtractionList(false);
     setVideoAnalysisError("");
+    setQAAnalysis({});
     console.log("analyzing - " + searchText);
     // var queryUrl = commentAnalysisUrl;
     console.log({
@@ -350,17 +351,22 @@ const SearchScreen = () => {
         // console.log(!data.ok);
        console.log("analyzed results - ");
        console.log(data);
-       if (!isNaN(data.question)){
+       console.log(isNaN(data.question));
+      //  if (!isNaN(data.question)){
         setQALoading(false);
         setQAExtractionList(true);
         setQAAnalysis({"questions" : data});
         setVideoAnalysisError("");
-       }
-       else{
-        console.log("ERROR Occurred in response ");
-        setQALoading(false);
-        setVideoAnalysisError("Error! Could not process the Question Answering request!");
-       }
+        console.log("Object.keys(QAAnalysis).length");
+        console.log(Object.keys(QAAnalysis).length);
+        console.log("QAAnalysis.questions.length");
+        console.log(QAAnalysis.questions.length);
+      //  }
+      //  else{
+      //   console.log("ERROR Occurred in response ");
+      //   setQALoading(false);
+      //   setVideoAnalysisError("Error! Could not process the Question Answering request!");
+      //  }
       //  console.log("lengths - ");
       //  console.log(Object.keys(videoAnalysis).length);
       //  console.log(isNaN(videoAnalysis.question));
@@ -626,6 +632,7 @@ const getAnalysisForm = () => {
 
           {(Object.keys(QAAnalysis).length>0 && QAAnalysis.questions.length>0) ? QAAnalysis.questions.map((question)=>(
             <div class="p-flex">
+              <hr style={{ color: "white", backgroundColor: "grey", height: "2px" }}/>
               <div class="d-flex align-items-center">
                 <TbMessageQuestion color="red"/>
                 <a class="nav-link h5">{question.question}</a>
