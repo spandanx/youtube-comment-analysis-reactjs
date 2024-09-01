@@ -13,7 +13,7 @@ import { FaAnglesDown, FaAnglesUp } from "react-icons/fa6";
 import { BiError } from "react-icons/bi";
 // import {Animation, Button} from 'rsuite';
 import './SearchScreen.css';
-import './styles/LoadingIcon.css';
+import './styles/LoadingText.css';
 
 // import {
 //   Container,
@@ -29,18 +29,35 @@ const SearchScreen = () => {
 
   const videoSearchUrl = "http://127.0.0.1:8000/video-search/"
   const commentAnalysisUrl = "http://127.0.0.1:8000/summarize-text/"
+  const extractCommentUrl = "http://127.0.0.1:8000/extract-text/"
+  const questionAnsweringUrl = "http://127.0.0.1:8000/answer-question/"
 
   // const navigate = useNavigate();
 
 
     const [searchText, setSearchText] = useState('');
-    const [analysisLoading, setAnalysisLoading] = useState(false);
     const [videoArray, setVideoArray] = useState([]);
     const [videoSelectMap, setVideoSelectMap] = useState({});
     const [videoSelectMapLength, setVideoSelectMapLength] = useState(0);
+    const [videoSearchError, setVideoSearchError] = useState("");
+    const [commentData, setCommentData] = useState({});
+
+    const [extractionLoading, setExtractionLoading] = useState(false);
+    const [toggleExtractionList, setToggleExtractionList] = useState(false);
+    const [textExtractionisError, setTextExtractionisError] = useState("");
+
+    const [QALoading, setQALoading] = useState(false);
+    const [QAExtractionList, setQAExtractionList] = useState(false);
+    // const [QAisError, setQAisError] = useState("");
+    const [QAAnalysis, setQAAnalysis] = useState({});
+
+    const [analysisLoading, setAnalysisLoading] = useState(false);
+    const [toggleAnalysisList, setToggleAnalysisList] = useState(false);
     const [videoAnalysis, setVideoAnalysis] = useState({});
     const [videoAnalysisError, setVideoAnalysisError] = useState("");
-    const [videoSearchError, setVideoSearchError] = useState("");
+
+
+    // const [videoAnalysis, setVideoAnalysis] = useState({});
     // const [videoAnalysis, setVideoAnalysis] = useState({"summary": "ka Cedar inn is most of the beautiful snd nice hotel I very nice and informative Easy hotel ka name tell me where bike parking avelbel ho Best part ye h ki unmarried couple can also go h Darjeeling me strength room the Beautiful keep it up In one room can we stay 5 person Hi Anjali, Just confused with Summit Montana suites and spa and Yashshree Sanderling which is better.",
     // "questions": [
     //   {
@@ -115,7 +132,7 @@ const SearchScreen = () => {
 
     const [anim, setAnim] = useState(false);
     const [toggleVideoList, setToggleVideoList] = useState(false);
-    const [toggleAnalysisList, setToggleAnalysisList] = useState(false);
+
     const firstTimeSearchDelay = 500; //ms
     
 
@@ -187,15 +204,15 @@ const SearchScreen = () => {
         .catch(error => {
           console.log("ERROR ");
           console.log(error);
-          setVideoSearchError("Error! Could not process the search request!");
+          setVideoSearchError("Sorry! Could not process the search request!");
       });
   }
 
-  const analyzeVideoInformation = (event) => {
+  const extractVideoText = (event) => {
     event.preventDefault();
-    setAnalysisLoading(true);
-    setToggleAnalysisList(false);
-    setVideoAnalysisError("");
+    setExtractionLoading(true);
+    setToggleExtractionList(false);
+    setTextExtractionisError("");
     console.log("analyzing - " + searchText);
     // var queryUrl = commentAnalysisUrl;
     console.log({
@@ -203,7 +220,7 @@ const SearchScreen = () => {
      });
     //  console.log();
      
-    fetch(commentAnalysisUrl, {
+    fetch(extractCommentUrl, {
       method: 'post',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({
@@ -214,18 +231,135 @@ const SearchScreen = () => {
         // console.log("Printing Status Response");
         // console.log(data.status);
         // console.log(!data.ok);
+        console.log("analyzed results - ");
+        console.log(data);
+        setExtractionLoading(false);
+        // setToggleExtractionList(true);
+        // setVideoAnalysis(data);
+        setCommentData(data);
+        setTextExtractionisError("");
+     })
+     .catch(error => {
+        // console.log("Printing Status - ERROR");
+        // console.log(error.status);
+        // console.log(!error.ok);
+      console.log("ERROR Occurred - ");
+      console.error(error);
+      setExtractionLoading(false);
+      setTextExtractionisError("Error! Could not process the text extraction request!");
+      // console.log(Object.keys(videoAnalysis).length);
+      // console.log(isNaN(videoAnalysis.question));
+      // console.log(videoAnalysis.questions?.length);
+    });
+  }
+  const analyzeVideoInformation = (event) => {
+    event.preventDefault();
+    getSummaryInformation(event);
+    // getQuestionAnswer(event);
+  }
+
+  const getSummaryInformation = (event) => {
+    event.preventDefault();
+    setAnalysisLoading(true);
+    setToggleAnalysisList(false);
+    setVideoAnalysisError("");
+    setVideoAnalysis({});
+    console.log("analyzing - " + searchText);
+    // var queryUrl = commentAnalysisUrl;
+    console.log({
+      "texts": commentData.statements,
+      "summModel": "Abstractive - BARTAbstractiveSummarizer"
+     });
+    //  console.log();
+     
+    fetch(commentAnalysisUrl, {
+      method: 'post',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        "texts": commentData.statements,
+        "summModel": "Abstractive - BARTAbstractiveSummarizer"
+       })
+     }).then(response => response.json())
+     .then(data => {
+        // console.log("Printing Status Response");
+        // console.log(data.status);
+        // console.log(!data.ok);
        console.log("analyzed results - ");
        console.log(data);
-       if (!isNaN(videoAnalysis.question)){
+      //  if (!isNaN(data.summary)){
         setAnalysisLoading(false);
         setToggleAnalysisList(true);
         setVideoAnalysis(data);
+
+        // console.log("Object.keys(videoAnalysis).length");
+        // console.log(Object.keys(videoAnalysis).length);
+        // console.log("videoAnalysis.summary");
+        // console.log(videoAnalysis.summary);
+        setVideoAnalysisError("");
+      //  }
+      //  else{
+      //   console.log("ERROR Occurred in response ");
+      //   setAnalysisLoading(false);
+      //   setVideoAnalysisError("Error! Could not process the analysis request!");
+      //  }
+      //  console.log("lengths - ");
+      //  console.log(Object.keys(videoAnalysis).length);
+      //  console.log(isNaN(videoAnalysis.question));
+      //  console.log(videoAnalysis.questions?.length);
+     })
+     .catch(error => {
+        // console.log("Printing Status - ERROR");
+        // console.log(error.status);
+        // console.log(!error.ok);
+      console.log("ERROR Occurred - ");
+      console.error(error);
+      setAnalysisLoading(false);
+      setVideoAnalysisError("Error! Could not process the analysis request!");
+      // console.log(Object.keys(videoAnalysis).length);
+      // console.log(isNaN(videoAnalysis.question));
+      // console.log(videoAnalysis.questions?.length);
+    });
+  }
+
+  const getQuestionAnswer = (event) => {
+    event.preventDefault();
+    setQALoading(true);
+    setQAExtractionList(false);
+    setVideoAnalysisError("");
+    console.log("analyzing - " + searchText);
+    // var queryUrl = commentAnalysisUrl;
+    console.log({
+      "context": commentData.statements,
+      "questions": commentData.questions,
+      "qaModel": "DistilbertQuestionAnswering"
+     });
+    //  console.log();
+     
+    fetch(questionAnsweringUrl, {
+      method: 'post',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        "context": commentData.statements,
+        "questions": commentData.questions,
+        "qaModel": "DistilbertQuestionAnswering"
+       })
+     }).then(response => response.json())
+     .then(data => {
+        // console.log("Printing Status Response");
+        // console.log(data.status);
+        // console.log(!data.ok);
+       console.log("analyzed results - ");
+       console.log(data);
+       if (!isNaN(data.question)){
+        setQALoading(false);
+        setQAExtractionList(true);
+        setQAAnalysis({"questions" : data});
         setVideoAnalysisError("");
        }
        else{
         console.log("ERROR Occurred in response ");
-        setAnalysisLoading(false);
-        setVideoAnalysisError("Error! Could not process the analysis request!");
+        setQALoading(false);
+        setVideoAnalysisError("Error! Could not process the Question Answering request!");
        }
       //  console.log("lengths - ");
       //  console.log(Object.keys(videoAnalysis).length);
@@ -377,10 +511,10 @@ const getDownArrowAnalysisList = () => {
       <div class="col-sm-5">
       </div>
       <div class="col-sm-auto downarray">
-        {toggleAnalysisList ? 
-          <FaAnglesUp onClick={() => setToggleAnalysisList(!toggleAnalysisList)}/>
+        {toggleExtractionList ? 
+          <FaAnglesUp onClick={() => setToggleExtractionList(!toggleExtractionList)}/>
           :
-          <FaAnglesDown onClick={(event) => setToggleAnalysisList(!toggleAnalysisList)}/>
+          <FaAnglesDown onClick={(event) => setToggleExtractionList(!toggleExtractionList)}/>
         }
           </div>
         <div class="col-sm-5">
@@ -444,15 +578,18 @@ const getAnalysisForm = () => {
     <div class="form-group row my-3 py-3 justify-content-center">
         <div class="d-flex align-items-center">
             <div class="col-sm-auto">
-                <button disabled={videoSelectMapLength==0} class="btn btn-success mx-1" onClick={(event) => analyzeVideoInformation(event)}>Get Analysis</button>
+                <button disabled={videoSelectMapLength==0} class="btn btn-success mx-1" onClick={(event) => extractVideoText(event)}>Extract Text</button>
+            </div>
+            <div class="col-sm-auto">
+                <button disabled={Object.keys(commentData).length == 0} class="btn btn-success mx-1" onClick={(event) => analyzeVideoInformation(event)}>Get Analysis</button>
             </div>
         </div>
         <div class="d-flex align-items-center">
-            {analysisLoading &&  
+            {extractionLoading &&  
               getLoadingAnimation()
             }
-            {videoAnalysisError.length > 0 && 
-              getWarningMessage(videoAnalysisError)
+            {textExtractionisError.length > 0 && 
+              getWarningMessage(textExtractionisError)
             }
         </div>
         {Object.keys(videoAnalysis).length>0 &&
@@ -462,23 +599,32 @@ const getAnalysisForm = () => {
         </div>
         }
         <div class={`analysis-list ${toggleAnalysisList ? 'show' : ''}`} style={{"overflow-y": "scroll"}}>
-            {Object.keys(videoAnalysis).length>0 && 
+        {/* <div class={`analysis-list show`} style={{"overflow-y": "scroll"}}> */}
+            {Object.keys(videoAnalysis).length>0 ?
             <div class="col">
               <div class="text-center">SUMMARY</div>
-              <hr style={{ color: "white", backgroundColor: "grey", height: "2px" }} />
-              <div class="text-center">{videoAnalysis.summary}</div>
+                {videoAnalysis.summary.map((summary_text)=>(
+                  <div class="text-center">
+                    <hr style={{ color: "white", backgroundColor: "grey", height: "2px" }} />
+                    {summary_text}
+                    </div>
+                  
+                  )
+                )}
             </div>
+            :
+            <></>
             }
             <hr style={{ color: "white", backgroundColor: "grey", height: "2px" }} />
             <div class="col">
-              {Object.keys(videoAnalysis).length>0 ?
+              {Object.keys(QAAnalysis).length>0 ?
                 <div class="text-center">QUESTIONS</div>
               :
                 <div></div>
               }
           </div>
 
-          {(Object.keys(videoAnalysis).length>0 && videoAnalysis.questions.length>0) ? videoAnalysis.questions.map((question)=>(
+          {(Object.keys(QAAnalysis).length>0 && QAAnalysis.questions.length>0) ? QAAnalysis.questions.map((question)=>(
             <div class="p-flex">
               <div class="d-flex align-items-center">
                 <TbMessageQuestion color="red"/>
