@@ -8,12 +8,18 @@ import 'react-toastify/dist/ReactToastify.css';
 // import { useNavigate } from "react-router-dom";
 // import { BallTriangle } from 'react-loader-spinner';
 import { FaAnglesDown, FaAnglesUp } from "react-icons/fa6";
+import { LuCheckCircle } from "react-icons/lu";
+import { RiSettings4Fill } from "react-icons/ri";
+// import Select from 'react-select'
 // import { IoWarningSharp } from "react-icons/io5";
 // import { Bars } from 'react-loading-icons'
 import { BiError } from "react-icons/bi";
 // import {Animation, Button} from 'rsuite';
 import './SearchScreen.css';
 import './styles/LoadingText.css';
+// import './styles/ModelSelection.css';
+import './styles/SummaryModelSelection.css';
+// import './styles/SummaryNestedModelSelection.css';
 
 // import {
 //   Container,
@@ -31,6 +37,8 @@ const SearchScreen = () => {
   const commentAnalysisUrl = "http://127.0.0.1:8000/summarize-text/"
   const extractCommentUrl = "http://127.0.0.1:8000/extract-text/"
   const questionAnsweringUrl = "http://127.0.0.1:8000/answer-question/"
+  const getSummaryModelListPath = "http://127.0.0.1:8000/summarize-models/"
+  const getQAModelListPath = "http://127.0.0.1:8000/question-answering-models/"
 
   // const navigate = useNavigate();
 
@@ -134,6 +142,25 @@ const SearchScreen = () => {
     const [toggleVideoList, setToggleVideoList] = useState(false);
 
     const firstTimeSearchDelay = 500; //ms
+
+    const [selectedSummaryModel, setSelectedSummaryModel] = useState("Abstractive - BARTAbstractiveSummarizer");
+
+    const [selectedQAModel, setSelectedQAModel] = useState("DistilbertQuestionAnswering");
+
+    const [summaryModels, setSummaryModels] = useState([
+      "Abstractive - BARTAbstractiveSummarizer",
+      "Abstractive - DistilbertSummarizer"
+    ]);
+
+    const [qaModels, setQAModels] = useState([
+      "DistilbertQuestionAnswering"
+    ]);
+
+    // const options = [
+    //   { value: 'chocolate', label: 'Chocolate' },
+    //   { value: 'strawberry', label: 'Strawberry' },
+    //   { value: 'vanilla', label: 'Vanilla' }
+    // ]
     
 
     //   {
@@ -151,6 +178,11 @@ const SearchScreen = () => {
     // );
 
     const accountTypes = ["EMPLOYEE", "DEPARTMENT", "AUDITOR"];
+
+    useEffect(() => {
+      getQAModels();
+      getSummaryModels();
+    }, []);
 
 
     const getToast = (msg, type) => {
@@ -206,6 +238,40 @@ const SearchScreen = () => {
           console.log(error);
           setVideoSearchError("Sorry! Could not process the search request!");
       });
+  }
+
+  const getSummaryModels = () => {
+    fetch(getSummaryModelListPath, {
+      method: 'get',
+      headers: {'Content-Type':'application/json'}
+     }).then(response => response.json())
+     .then(data => {
+        console.log("Summary Models - ");
+        console.log(data);
+        setSummaryModels(data);
+     })
+     .catch(error => {
+      console.log("ERROR Occurred - ");
+      console.error(error);
+      console.log("Error! Could not get the summary models!");
+    });
+  }
+
+  const getQAModels = () => {
+    fetch(getQAModelListPath, {
+      method: 'get',
+      headers: {'Content-Type':'application/json'}
+     }).then(response => response.json())
+     .then(data => {
+        console.log("QA Models - ");
+        console.log(data);
+        setQAModels(data);
+     })
+     .catch(error => {
+      console.log("ERROR Occurred - ");
+      console.error(error);
+      console.log("Error! Could not get the QA models!");
+    });
   }
 
   const extractVideoText = (event) => {
@@ -425,26 +491,6 @@ const SearchScreen = () => {
     event.preventDefault();
     setToggleVideoList(!toggleVideoList); 
   }
-  
-
-  const getSearchForm = () => {
-    return (
-    <form class="form-horizontal container" role="form">
-    <div class="form-group row my-3">
-      <div class="col-sm-11">
-        <input type="text" class="form-control select2-offscreen" id="parentAdddress" placeholder="Search on Youtube" tabIndex="-1"
-            value={searchText} 
-            onChange={(event) => setSearchText(event.target.value)}
-        />
-      </div>
-      <div class="col-sm-1">
-          <button disabled={!searchText} class="btn btn-success mx-1" onClick={(event) => getSearchResults(event)}>Search</button>
-          {/* <button class="btn btn-success mx-1" onClick={(event) => displayAnimation(event)}>Display Animation</button> */}
-          </div>
-    </div>
-  </form>
-    );
-}
 
 const getLoadingAnimation = () => {
   return (
@@ -586,6 +632,12 @@ const getAnalysisForm = () => {
             <div class="col-sm-auto">
                 <button disabled={videoSelectMapLength==0} class="btn btn-success mx-1" onClick={(event) => extractVideoText(event)}>Extract Text</button>
             </div>
+            <div class="col-sm-1">
+              {Object.keys(commentData).length > 0 ? 
+                <p class="my-auto">Extracted <LuCheckCircle style={{ color: "green"}}/></p>
+                : <></>
+              }
+            </div>
             <div class="col-sm-auto">
                 <button disabled={Object.keys(commentData).length == 0} class="btn btn-success mx-1" onClick={(event) => analyzeVideoInformation(event)}>Get Analysis</button>
             </div>
@@ -608,9 +660,9 @@ const getAnalysisForm = () => {
         {/* <div class={`analysis-list show`} style={{"overflow-y": "scroll"}}> */}
             {Object.keys(videoAnalysis).length>0 ?
             <div class="col">
-              <div class="text-center">SUMMARY</div>
+              <div class="text-lft">SUMMARY</div>
                 {videoAnalysis.summary.map((summary_text)=>(
-                  <div class="text-center">
+                  <div class="text-left">
                     <hr style={{ color: "white", backgroundColor: "grey", height: "2px" }} />
                     {summary_text}
                     </div>
@@ -680,12 +732,184 @@ const getVideoListForm = () => {
   )
 }
 
+const getSummaryModelList = () => {
+  let modelList = [];
+    summaryModels.forEach(function(summaryModel) {
+      modelList.push(
+        <a onClick={(summaryModel)=>setSelectedSummaryModel(summaryModel)}>{summaryModel}</a>
+      );
+    });
+    return modelList;
+}
+
+// const getSettingDropDown = () => {
+//   return (
+//     <div class="btn-group">
+//     <a type="button" class="nav-link dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+//       <RiSettings4Fill style={{ color: "black"}}/>
+//     </a>
+//     <div class="dropdown-menu dropdown-menu-right">
+//       <a class="dropdown-item fw-bold">{"ABC"}</a>
+//       <div class="dropdown-divider"></div>
+//       <a class="dropdown-item">Sample Account</a>
+//       <div class="modelselection">
+//         <button class="modelselectionbtn">{selectedModel}</button>
+//         <div class="modelselection-content">
+//           {getSummaryModelList()}
+//         </div>
+//       </div>
+//     </div>
+//   </div>
+//   )
+// }
+
+const getSettingDropDown = () => {
+  return (
+    <div class="dropdown">
+      <a data-mdb-button-init
+        data-mdb-ripple-init data-mdb-dropdown-init class="btn dropdown-toggle"
+        type="button"
+        id="dropdownMenuButton"
+        data-mdb-toggle="dropdown"
+        aria-expanded="false">
+        <RiSettings4Fill style={{ color: "black"}}/>
+      </a>
+      {/* <button data-mdb-button-init
+        data-mdb-ripple-init data-mdb-dropdown-init class="btn btn-primary dropdown-toggle"
+        type="button"
+        id="dropdownMenuButton"
+        data-mdb-toggle="dropdown"
+        aria-expanded="false"
+      >
+        Select
+      </button> */}
+      <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+        <li><a class="dropdown-item">Select Summary Model</a></li>
+        <li>
+          <div class="dropdown mx-3">
+            <button data-mdb-button-init
+              data-mdb-ripple-init data-mdb-dropdown-init class="btn dropdown-toggle"
+              type="button"
+              id="dropdownMenuSummaryButton"
+              data-mdb-toggle="dropdown"
+              aria-expanded="false"
+            >{selectedSummaryModel}</button>
+            <ul class="dropdown-menu" aria-labelledby="dropdownMenuSummaryButton">
+                {summaryModels.map((summaryModel) => 
+                <li><a class="dropdown-item" style={{"backgroundColor": summaryModel==selectedSummaryModel ? "green":""}} onClick={()=>setSelectedSummaryModel(summaryModel)}>{summaryModel}</a></li>
+              )}
+            </ul>
+          </div>
+        </li>
+        {/* <li><a class="dropdown-item">{selectedModel}</a></li> */}
+        {/* <li>
+          <ul class="dropdown-menu dropdown-submenu">
+          {summaryModels.map((summaryModel) => 
+            <li><a class="dropdown-item" onClick={()=>setSelectedModel(summaryModel)}>{summaryModel}</a></li>
+          )}
+          </ul>
+        </li> */}
+        <div class="dropdown-divider"></div>
+        <li><a class="dropdown-item">Select Question Answer Model</a></li>
+        <li>
+          <div class="dropdown mx-3">
+            <button data-mdb-button-init
+              data-mdb-ripple-init data-mdb-dropdown-init class="btn dropdown-toggle"
+              type="button"
+              id="dropdownMenuQAButton"
+              data-mdb-toggle="dropdown"
+              aria-expanded="false"
+            >{selectedQAModel}</button>
+            <ul class="dropdown-menu" aria-labelledby="dropdownMenuQAButton">
+                {qaModels.map((qaModel) => 
+                <li><a class="dropdown-item" style={{"backgroundColor": qaModel==selectedQAModel ? "green":""}} onClick={()=>setSelectedQAModel(qaModel)}>{qaModel}</a></li>
+              )}
+            </ul>
+          </div>
+        </li>
+      </ul>
+    </div>
+  )
+}
+
+
+const getNestedSettingDropDown = () => {
+  return (
+    <div class="dropdown">
+      <button data-mdb-button-init data-mdb-ripple-init data-mdb-dropdown-init
+        class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton"
+        data-mdb-toggle="dropdown" aria-expanded="false">
+        Dropdown button
+      </button>
+      <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+        <li><a class="dropdown-item" href="#">Action</a></li>
+        <li>
+          <a class="dropdown-item" href="#">Another action</a>
+        </li>
+        <li>
+          <a class="dropdown-item" href="#">
+            Submenu &raquo;
+          </a>
+          <ul class="dropdown-menu dropdown-submenu">
+            <li>
+              <a class="dropdown-item" href="#">Submenu item 1</a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="#">Submenu item 2</a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="#">Submenu item 3 &raquo; </a>
+              <ul class="dropdown-menu dropdown-submenu">
+                <li>
+                  <a class="dropdown-item" href="#">Multi level 1</a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="#">Multi level 2</a>
+                </li>
+              </ul>
+            </li>
+            <li>
+              <a class="dropdown-item" href="#">Submenu item 4</a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="#">Submenu item 5</a>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  )
+}
+
+const getSearchForm = () => {
+  return (
+  <form class="form-horizontal container" role="form">
+  <div class="form-group row my-3">
+    <div class="col-sm-10">
+      <input type="text" class="form-control select2-offscreen" id="parentAdddress" placeholder="Search on Youtube" tabIndex="-1"
+          value={searchText} 
+          onChange={(event) => setSearchText(event.target.value)}
+      />
+    </div>
+    <div class="col-sm-1">
+      {getSettingDropDown()}
+    </div>
+    <div class="col-sm-1">
+        <button disabled={!searchText} class="btn btn-success mx-1" onClick={(event) => getSearchResults(event)}>Search</button>
+    </div>
+  </div>
+</form>
+  );
+}
+
   return (
     <div class="form-horizontal container" role="form">
         <div class="form-group justify-content-between">
           <div class="col-md-4">
           </div>
-          <div class="col-md-auto">Search on Youtube</div>
+          <div class="col-md-auto">
+            <div class="row-md-4">Search on Youtube</div>
+          </div>
           <div class="col-md-4">
             {/* {getSampleTransition()} */}
           </div>

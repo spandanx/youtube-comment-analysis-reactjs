@@ -57,7 +57,7 @@ const TopNavBar = () => {
           <div class="dropdown-menu dropdown-menu-right">
             <a class="dropdown-item fw-bold">{accountName}</a>
             <div class="dropdown-divider"></div>
-            <a class="dropdown-item">Address: {accountAddress.substring(0, 10)}... <MdContentCopy onClick={() => {copyText(accountAddress)}} style={pointerHover}/></a>
+            <a class="dropdown-item">Sample Account</a>
           </div>
         </div>
       </li>
