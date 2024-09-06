@@ -45,7 +45,7 @@ const TopNavBar = () => {
   return (
     <ul class="nav justify-content-between">
       <li class="nav-item">
-        <a class="nav-link active">Youtube Comment Analysis</a>
+        <a class="nav-link">Youtube Comment Analysis</a>
         <ToastContainer/>
       </li>
       

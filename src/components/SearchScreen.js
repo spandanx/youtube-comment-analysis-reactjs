@@ -10,6 +10,8 @@ import 'react-toastify/dist/ReactToastify.css';
 import { FaAnglesDown, FaAnglesUp } from "react-icons/fa6";
 import { LuCheckCircle } from "react-icons/lu";
 import { RiSettings4Fill } from "react-icons/ri";
+import { MdNavigateNext, MdNavigateBefore } from "react-icons/md";
+import ReactPaginate from 'react-paginate';
 // import Select from 'react-select'
 // import { IoWarningSharp } from "react-icons/io5";
 // import { Bars } from 'react-loading-icons'
@@ -19,6 +21,7 @@ import './SearchScreen.css';
 import './styles/LoadingText.css';
 // import './styles/ModelSelection.css';
 import './styles/SummaryModelSelection.css';
+import './styles/videopagination.css';
 // import './styles/SummaryNestedModelSelection.css';
 
 // import {
@@ -34,6 +37,7 @@ import {
 const SearchScreen = () => {
 
   const videoSearchUrl = "http://127.0.0.1:8000/video-search/"
+  const videoSearchByTokenUrl = "http://127.0.0.1:8000/video-search-by-token/"
   const commentAnalysisUrl = "http://127.0.0.1:8000/summarize-text/"
   const extractCommentUrl = "http://127.0.0.1:8000/extract-text/"
   const questionAnsweringUrl = "http://127.0.0.1:8000/answer-question/"
@@ -147,6 +151,8 @@ const SearchScreen = () => {
 
     const [selectedQAModel, setSelectedQAModel] = useState("DistilbertQuestionAnswering");
 
+    const [fullVideoObject, setFullVideoObject] = useState({});
+
     const [summaryModels, setSummaryModels] = useState([
       "Abstractive - BARTAbstractiveSummarizer",
       "Abstractive - DistilbertSummarizer"
@@ -215,12 +221,57 @@ const SearchScreen = () => {
     fetch(queryUrl)
         .then(response => response.json())
         .then(data => {
+          console.log(data);
           setVideoSearchError("");
           let firstTimeLoad = false;
-          if (videoArray.length == 0){
+          // console.log(videoArray);
+          // console.log(videoArray == null);
+          // console.log(videoArray.length);
+          if ((videoArray == null) || videoArray.length == 0){
             firstTimeLoad = true;
           }
-          setVideoArray(data);
+          setVideoArray(data["videos"]);
+          setFullVideoObject(data);
+          if (firstTimeLoad) {
+            setTimeout(() => {
+              setToggleVideoList(true);
+          }, firstTimeSearchDelay);
+          }
+          else{
+            setToggleVideoList(true);
+          }
+
+          console.log("data - ");
+          console.log(data);
+        })
+        .catch(error => {
+          console.log("ERROR ");
+          console.log(error);
+          setVideoSearchError("Sorry! Could not process the search request!");
+      });
+  }
+
+  const getSearchResultsByPageToken = (pageToken) => {
+    // event.preventDefault();
+    setToggleVideoList(false);
+    console.log("querying - " + searchText);
+    var queryUrl = videoSearchByTokenUrl + "?pageToken=" + pageToken + "&max_results=10"
+    console.log("url - ");
+    console.log(queryUrl);
+    fetch(queryUrl)
+        .then(response => response.json())
+        .then(data => {
+          console.log(data);
+          setVideoSearchError("");
+          let firstTimeLoad = false;
+          // console.log(videoArray);
+          // console.log(videoArray == null);
+          // console.log(videoArray.length);
+          if ((videoArray == null) || videoArray.length == 0){
+            firstTimeLoad = true;
+          }
+          setVideoArray(data["videos"]);
+          setFullVideoObject(data);
           if (firstTimeLoad) {
             setTimeout(() => {
               setToggleVideoList(true);
@@ -598,6 +649,51 @@ const getSampleTransition = () => {
   )
 }
 
+const getVideoListPagination = (prevToken, nextToken) => {
+  return (
+    // <ReactPaginate
+    //       containerClassName={"pagination"}
+    //       pageClassName={"page-item"}
+    //       activeClassName={"active-page"}
+    //       breakLabel="..."
+    //       nextLabel="next >"
+    //       pageRangeDisplayed={5}
+    //       pageCount={itemCount}
+    //       previousLabel="< previous"
+    //       renderOnZeroPageCount={null}
+    //   />
+    // <div class="d-flex align-items-center">
+    //     <div class="p-8 bd-highlight"></div>
+    //     <div class="p-2 bd-highlight">
+    //     <MdNavigateBefore/>Previous Page
+    //     </div>
+    //     <div class="p-2 bd-highlight">
+    //       Next Page<MdNavigateNext/>
+    //     </div>
+    //   </div>
+    <form class="form-horizontal container" role="form">
+      <div class="form-group row">
+        <div class="col-sm-10"></div>
+        {prevToken != null ? 
+          <div class="col-sm-1" style={{cursor: 'pointer'}} onClick={()=>getSearchResultsByPageToken(prevToken)}>
+              <MdNavigateBefore/>Previous
+          </div>
+         : 
+          <div class="col-sm-1"></div>
+        }
+        {nextToken != null ? 
+          <div class="col-sm-1" style={{cursor: 'pointer'}} onClick={()=>getSearchResultsByPageToken(nextToken)}>
+            Next<MdNavigateNext/>
+          </div>
+        :
+          <div class="col-sm-1"></div>
+        }
+      </div>
+    </form>
+      
+  );
+}
+
 const getVideoList = () => {
   return (
   // <CSSTransition in={anim} timeout={2000} classNames="videoitem">
@@ -605,6 +701,7 @@ const getVideoList = () => {
     <div class={`videocustom ${toggleVideoList ? 'show' : ''}`} style={{"overflow-y": "scroll"}}>
       <input value = "test" class = "align-items-stretch" type = "checkbox" onChange = {(event) => updateVideoMapAll(videoArray)}/>
       {/*   */}
+      {getVideoListPagination(fullVideoObject["prevPageToken"], fullVideoObject["nextPageToken"])}
       <hr style={{ color: "white", backgroundColor: "grey", height: "2px" }} />
       {videoArray.map((videoItem)=>(
 
@@ -620,6 +717,9 @@ const getVideoList = () => {
         </div>
       </div>
       ))}
+      <hr style={{ color: "white", backgroundColor: "grey", height: "2px" }} />
+      {getVideoListPagination(fullVideoObject["prevPageToken"], fullVideoObject["nextPageToken"])}
+      <hr style={{ color: "white", backgroundColor: "grey", height: "2px" }} />
     </div>
     // </CSSTransition>
   )
@@ -703,13 +803,26 @@ const getAnalysisForm = () => {
   )
 }
 
+// const getVideoPagination = () => {
+//   return (
+//     <ReactPaginate
+//         breakLabel="..."
+//         nextLabel="next >"
+//         pageRangeDisplayed={5}
+//         pageCount={10}
+//         previousLabel="< previous"
+//         renderOnZeroPageCount={null}
+//       />
+//   );
+// }
+
 const getVideoListForm = () => {
   return (
     <div>
-          {videoSearchError.length > 0 && 
+          {videoSearchError!=null && videoSearchError.length > 0 && 
             getWarningMessage(videoSearchError)
           }
-          {videoArray.length > 0 ? 
+          {(videoArray!= null && videoArray.length > 0) || (fullVideoObject["nextPageToken"] != null) ? 
             <div class="col">
                 <div class="text-center">VIDEOS</div>
               <hr style={{ color: "white", backgroundColor: "grey", height: "2px" }} />
@@ -723,7 +836,7 @@ const getVideoListForm = () => {
           :
           <div></div>
         }
-        {videoArray.length > 0 ? 
+        {(videoArray!= null && videoArray.length > 0) || (fullVideoObject["nextPageToken"] != null) ? 
           getVideoList()
         :
         <div></div>
