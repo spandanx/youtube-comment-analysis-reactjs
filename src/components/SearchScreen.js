@@ -153,14 +153,9 @@ const SearchScreen = () => {
 
     const [fullVideoObject, setFullVideoObject] = useState({});
 
-    const [summaryModels, setSummaryModels] = useState([
-      "Abstractive - BARTAbstractiveSummarizer",
-      "Abstractive - DistilbertSummarizer"
-    ]);
+    const [summaryModels, setSummaryModels] = useState([]);
 
-    const [qaModels, setQAModels] = useState([
-      "DistilbertQuestionAnswering"
-    ]);
+    const [qaModels, setQAModels] = useState([]);
 
     // const options = [
     //   { value: 'chocolate', label: 'Chocolate' },
@@ -255,7 +250,7 @@ const SearchScreen = () => {
     // event.preventDefault();
     setToggleVideoList(false);
     console.log("querying - " + searchText);
-    var queryUrl = videoSearchByTokenUrl + "?pageToken=" + pageToken + "&max_results=10"
+    var queryUrl = videoSearchByTokenUrl + "?searchText=" + searchText + "&pageToken=" + pageToken + "&max_results=10"
     console.log("url - ");
     console.log(queryUrl);
     fetch(queryUrl)
@@ -694,12 +689,27 @@ const getVideoListPagination = (prevToken, nextToken) => {
   );
 }
 
+const checkIfAllSelected = () => {
+  for (let i = 0; i < videoArray.length; i++) {
+    if (!(videoArray[i].videoId in videoSelectMap))
+      return false;
+  }
+  // videoArray.forEach(function(vidItem) {
+  //     if (!(vidItem.videoId in videoSelectMap))
+  //       return false;
+  //   }
+  // )
+  if (videoArray.length==0)
+    return false;
+  return true;
+}
+
 const getVideoList = () => {
   return (
   // <CSSTransition in={anim} timeout={2000} classNames="videoitem">
     // <div class={`videocustom ${toggle ? 'show' : ''}`}>
     <div class={`videocustom ${toggleVideoList ? 'show' : ''}`} style={{"overflow-y": "scroll"}}>
-      <input value = "test" class = "align-items-stretch" type = "checkbox" onChange = {(event) => updateVideoMapAll(videoArray)}/>
+      <input value = "test" class = "align-items-stretch" type = "checkbox" checked={checkIfAllSelected()} onChange = {(event) => updateVideoMapAll(videoArray)}/>
       {/*   */}
       {getVideoListPagination(fullVideoObject["prevPageToken"], fullVideoObject["nextPageToken"])}
       <hr style={{ color: "white", backgroundColor: "grey", height: "2px" }} />
@@ -707,7 +717,7 @@ const getVideoList = () => {
 
       <div class="d-flex align-items-center">
         <div class="p-2 bd-highlight">
-          <input value = "test" class = "align-items-stretch" type = "checkbox" onChange = {(event) => {updateVideoMap(videoItem.videoId)}} />
+          <input value = "test" class = "align-items-stretch" type = "checkbox" checked={videoItem.videoId in videoSelectMap} onChange = {(event) => {updateVideoMap(videoItem.videoId)}} />
         </div>
         <div class="p-2 bd-highlight">
           <img src={videoItem.thumbnails} />
@@ -845,15 +855,15 @@ const getVideoListForm = () => {
   )
 }
 
-const getSummaryModelList = () => {
-  let modelList = [];
-    summaryModels.forEach(function(summaryModel) {
-      modelList.push(
-        <a onClick={(summaryModel)=>setSelectedSummaryModel(summaryModel)}>{summaryModel}</a>
-      );
-    });
-    return modelList;
-}
+// const getSummaryModelList = () => {
+//   let modelList = [];
+//     summaryModels.forEach(function(summaryModel) {
+//       modelList.push(
+//         <a onClick={(summaryModel)=>setSelectedSummaryModel(summaryModel)}>{summaryModel}</a>
+//       );
+//     });
+//     return modelList;
+// }
 
 // const getSettingDropDown = () => {
 //   return (
