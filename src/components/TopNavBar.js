@@ -8,7 +8,7 @@ import { MdAccountCircle, MdContentCopy } from "react-icons/md";
 
 import {pointerHover} from './styles/cursor.js';
 
-const TopNavBar = () => {
+const TopNavBar = ({activeUser, setToken, setActiveUser}) => {
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -42,6 +42,13 @@ const TopNavBar = () => {
       });
   }
 
+  const logout = () => {
+    localStorage.removeItem('userData');
+    setToken("");
+    setActiveUser("");
+    navigate('/login');
+  }
+
   return (
     <ul class="nav justify-content-between">
       <li class="nav-item">
@@ -50,16 +57,18 @@ const TopNavBar = () => {
       </li>
       
       <li class="nav-item">
-        <div class="btn-group">
-          <a type="button" class="nav-link dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            <MdAccountCircle color="blue" size="2em"/>
-          </a>
-          <div class="dropdown-menu dropdown-menu-right">
-            <a class="dropdown-item fw-bold">{accountName}</a>
-            <div class="dropdown-divider"></div>
-            <a class="dropdown-item">Sample Account</a>
+        {(activeUser != undefined && activeUser != "") && 
+          <div class="btn-group">
+            <a type="button" class="nav-link dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <MdAccountCircle color="blue" size="2em"/>
+            </a>
+            <div class="dropdown-menu dropdown-menu-right">
+              <a class="dropdown-item fw-bold">Hi {activeUser}</a>
+              <div class="dropdown-divider"></div>
+              <a class="dropdown-item" style = {{color: "red"}} onClick={()=>logout()}>Logout</a>
+            </div>
           </div>
-        </div>
+          }
       </li>
       
     </ul>

@@ -34,7 +34,7 @@ import {
   TransitionGroup,
 } from 'react-transition-group';
 
-const SearchScreen = () => {
+const SearchScreen = ({token}) => {
 
   const videoSearchUrl = "http://127.0.0.1:8000/video-search/"
   const videoSearchByTokenUrl = "http://127.0.0.1:8000/video-search-by-token/"
@@ -67,6 +67,11 @@ const SearchScreen = () => {
     const [toggleAnalysisList, setToggleAnalysisList] = useState(false);
     const [videoAnalysis, setVideoAnalysis] = useState({});
     const [videoAnalysisError, setVideoAnalysisError] = useState("");
+
+    const [authToken, setAuthToken] = useState("");
+    
+
+    // const [authToken, setAuthToken] = useState("");
 
 
     // const [videoAnalysis, setVideoAnalysis] = useState({});
@@ -184,6 +189,11 @@ const SearchScreen = () => {
       getQAModels();
       getSummaryModels();
     }, []);
+
+    useEffect(() => {
+      setAuthToken(token);
+      console.log("token changed", token);
+    }, [token]);
 
 
     const getToast = (msg, type) => {
