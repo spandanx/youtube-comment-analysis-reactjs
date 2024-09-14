@@ -34,6 +34,7 @@ function App() {
       <div class="d-flex align-items-start mt-2">
         {/* <LeftNavBar/> */}
           <Routes>
+            <Route path="/" element={<Login setToken={setToken} setActiveUser={setActiveUser}/>}/>
             <Route path="/search" element={<SearchScreen token={authToken}/>}/>
             <Route path="/login" element={<Login setToken={setToken} setActiveUser={setActiveUser}/>}/>
             <Route path="/register" element={<RegistrationPage/>}/>

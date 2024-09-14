@@ -18,7 +18,9 @@ import ReactPaginate from 'react-paginate';
 import { BiError } from "react-icons/bi";
 // import {Animation, Button} from 'rsuite';
 import './SearchScreen.css';
-import './styles/LoadingText.css';
+import './styles/ExtractionLoading.css';
+import './styles/LoadingModel.css';
+import './styles/LoadingQAModel.css';
 // import './styles/ModelSelection.css';
 import './styles/SummaryModelSelection.css';
 import './styles/videopagination.css';
@@ -55,93 +57,23 @@ const SearchScreen = ({token}) => {
     const [commentData, setCommentData] = useState({});
 
     const [extractionLoading, setExtractionLoading] = useState(false);
+    const [extractionAnalysisLoading, setExtractionAnalysisLoading] = useState(false);
     const [toggleExtractionList, setToggleExtractionList] = useState(false);
     const [textExtractionisError, setTextExtractionisError] = useState("");
 
-    const [QALoading, setQALoading] = useState(false);
     const [QAExtractionList, setQAExtractionList] = useState(false);
     // const [QAisError, setQAisError] = useState("");
     const [QAAnalysis, setQAAnalysis] = useState({});
 
-    const [analysisLoading, setAnalysisLoading] = useState(false);
+    const [summarizationLoading, setSummarizationLoading] = useState(false);
+    const [QALoading, setQALoading] = useState(false);
     const [toggleAnalysisList, setToggleAnalysisList] = useState(false);
     const [videoAnalysis, setVideoAnalysis] = useState({});
     const [videoAnalysisError, setVideoAnalysisError] = useState("");
 
     const [authToken, setAuthToken] = useState("");
     
-
-    // const [authToken, setAuthToken] = useState("");
-
-
-    // const [videoAnalysis, setVideoAnalysis] = useState({});
-    // const [videoAnalysis, setVideoAnalysis] = useState({"summary": "ka Cedar inn is most of the beautiful snd nice hotel I very nice and informative Easy hotel ka name tell me where bike parking avelbel ho Best part ye h ki unmarried couple can also go h Darjeeling me strength room the Beautiful keep it up In one room can we stay 5 person Hi Anjali, Just confused with Summit Montana suites and spa and Yashshree Sanderling which is better.",
-    // "questions": [
-    //   {
-    //     "question": "Oct main How about weather?",
-    //     "answer": {
-    //       "score": 0.0618143193423748,
-    //       "start": 509,
-    //       "end": 512,
-    //       "answer": "two"
-    //     }
-    //   },
-    //   {
-    //     "question": "Kitchen I am not?",
-    //     "answer": {
-    //       "score": 0.048960890620946884,
-    //       "start": 346,
-    //       "end": 400,
-    //       "answer": "Summit Montana suites and spa and\nYashshree Sanderling"
-    //     }
-    //   },
-    //   {
-    //     "question": "How to book ?",
-    //     "answer": {
-    //       "score": 0.19173763692378998,
-    //       "start": 509,
-    //       "end": 512,
-    //       "answer": "two"
-    //     }
-    //   },
-    //   {
-    //     "question": "What if agar October me planning hollow to approximately how much will it cost",
-    //     "answer": {
-    //       "score": 0.6830801367759705,
-    //       "start": 509,
-    //       "end": 512,
-    //       "answer": "two"
-    //     }
-    //   },
-    //   {
-    //     "question": "Few hotels from this list have very very bad reviews. How can you say those best?",
-    //     "answer": {
-    //       "score": 0.09604348987340927,
-    //       "start": 43,
-    //       "end": 55,
-    //       "answer": "ka\nCedar inn"
-    //     }
-    //   },
-    //   {
-    //     "question": "Any problem for unmarried couple in single room?",
-    //     "answer": {
-    //       "score": 0.037298500537872314,
-    //       "start": 262,
-    //       "end": 282,
-    //       "answer": "Beautiful keep it up"
-    //     }
-    //   },
-    //   {
-    //     "question": "Great ",
-    //     "answer": {
-    //       "score": 0.5304459929466248,
-    //       "start": 380,
-    //       "end": 400,
-    //       "answer": "Yashshree Sanderling"
-    //     }
-    //   }
-    // ]
-    // });
+//######################
     
 
     const [inProp, setInProp] = useState(false);
@@ -162,26 +94,6 @@ const SearchScreen = ({token}) => {
 
     const [qaModels, setQAModels] = useState([]);
 
-    // const options = [
-    //   { value: 'chocolate', label: 'Chocolate' },
-    //   { value: 'strawberry', label: 'Strawberry' },
-    //   { value: 'vanilla', label: 'Vanilla' }
-    // ]
-    
-
-    //   {
-    //     "summary": "bbc is a very unique place for the crabs to crawl in horror mode . the penguins and the sea lions &amp; eel vs. crabs are all out of the same level .",
-    //     "questions": [
-    //         "What nature scene is your favourite? 🌎",
-    //         "My favourite scene is &quot;what lurks in the midnight zone?&quot;",
-    //         "​@@kittycat4ever2🎉nc😮🎉Nmz😮🎉c <a href=\"https://www.youtube.com/watch?v=SIm3nKfJnFE&amp;t=3779\">1:02:59</a> 😮🎉",
-    //         "@@kittycat4ever2😅😊",
-    //         "@@kittycat4ever2😊",
-    //         "​@@kittycat4ever2dd",
-    //         "👍🏻👍🏻👍🏻"
-    //     ]
-    // }
-    // );
 
     const accountTypes = ["EMPLOYEE", "DEPARTMENT", "AUDITOR"];
 
@@ -382,7 +294,7 @@ const SearchScreen = ({token}) => {
 
   const getSummaryInformation = (event) => {
     event.preventDefault();
-    setAnalysisLoading(true);
+    setSummarizationLoading(true);
     setToggleAnalysisList(false);
     setVideoAnalysisError("");
     setVideoAnalysis({});
@@ -409,37 +321,17 @@ const SearchScreen = ({token}) => {
        console.log("analyzed results - ");
        console.log(data);
       //  if (!isNaN(data.summary)){
-        setAnalysisLoading(false);
+        setSummarizationLoading(false);
         setToggleAnalysisList(true);
         setVideoAnalysis(data);
 
-        // console.log("Object.keys(videoAnalysis).length");
-        // console.log(Object.keys(videoAnalysis).length);
-        // console.log("videoAnalysis.summary");
-        // console.log(videoAnalysis.summary);
         setVideoAnalysisError("");
-      //  }
-      //  else{
-      //   console.log("ERROR Occurred in response ");
-      //   setAnalysisLoading(false);
-      //   setVideoAnalysisError("Error! Could not process the analysis request!");
-      //  }
-      //  console.log("lengths - ");
-      //  console.log(Object.keys(videoAnalysis).length);
-      //  console.log(isNaN(videoAnalysis.question));
-      //  console.log(videoAnalysis.questions?.length);
      })
      .catch(error => {
-        // console.log("Printing Status - ERROR");
-        // console.log(error.status);
-        // console.log(!error.ok);
       console.log("ERROR Occurred - ");
       console.error(error);
-      setAnalysisLoading(false);
+      setSummarizationLoading(false);
       setVideoAnalysisError("Error! Could not process the analysis request!");
-      // console.log(Object.keys(videoAnalysis).length);
-      // console.log(isNaN(videoAnalysis.question));
-      // console.log(videoAnalysis.questions?.length);
     });
   }
 
@@ -483,24 +375,11 @@ const SearchScreen = ({token}) => {
         console.log(Object.keys(QAAnalysis).length);
         console.log("QAAnalysis.questions.length");
         console.log(QAAnalysis.questions.length);
-      //  }
-      //  else{
-      //   console.log("ERROR Occurred in response ");
-      //   setQALoading(false);
-      //   setVideoAnalysisError("Error! Could not process the Question Answering request!");
-      //  }
-      //  console.log("lengths - ");
-      //  console.log(Object.keys(videoAnalysis).length);
-      //  console.log(isNaN(videoAnalysis.question));
-      //  console.log(videoAnalysis.questions?.length);
      })
      .catch(error => {
-        // console.log("Printing Status - ERROR");
-        // console.log(error.status);
-        // console.log(!error.ok);
       console.log("ERROR Occurred - ");
       console.error(error);
-      setAnalysisLoading(false);
+      setQALoading(false);
       setVideoAnalysisError("Error! Could not process the analysis request!");
       console.log(Object.keys(videoAnalysis).length);
       console.log(isNaN(videoAnalysis.question));
@@ -548,24 +427,46 @@ const SearchScreen = ({token}) => {
     setToggleVideoList(!toggleVideoList); 
   }
 
-const getLoadingAnimation = () => {
+const getExtractionLoadingAnimation = () => {
   return (
   <form class="form-horizontal container" role="form">
     <div class="form-group row my-3 justify-content-center">
       <div class="col-sm-auto">
       </div>
       <div class="col-sm-auto">
-        <div class="loader"></div>
-          {/* <BallTriangle
-            height={100}
-            width={100}
-            radius={5}
-            color="white"
-            ariaLabel="ball-triangle-loading"
-            wrapperStyle={{}}
-            wrapperClass=""
-            visible={true}
-            /> */}
+        <div class="extraction-loader"></div>
+          </div>
+        <div class="col-sm-auto">
+      </div>
+    </div>
+  </form>
+  );
+}
+
+const getSummarizationLoadingAnimation = () => {
+  return (
+  <form class="form-horizontal container" role="form">
+    <div class="form-group row my-3 justify-content-center">
+      <div class="col-sm-auto">
+      </div>
+      <div class="col-sm-auto">
+        <div class="summary-analysis-loader"></div>
+          </div>
+        <div class="col-sm-auto">
+      </div>
+    </div>
+  </form>
+  );
+}
+
+const getQALoadingAnimation = () => {
+  return (
+  <form class="form-horizontal container" role="form">
+    <div class="form-group row my-3 justify-content-center">
+      <div class="col-sm-auto">
+      </div>
+      <div class="col-sm-auto">
+        <div class="qa-analysis-loader"></div>
           </div>
         <div class="col-sm-auto">
       </div>
@@ -622,7 +523,7 @@ const getDownArrowAnalysisList = () => {
         {toggleExtractionList ? 
           <FaAnglesUp onClick={() => setToggleExtractionList(!toggleExtractionList)}/>
           :
-          <FaAnglesDown onClick={(event) => setToggleExtractionList(!toggleExtractionList)}/>
+          <FaAnglesDown onClick={() => setToggleExtractionList(!toggleExtractionList)}/>
         }
           </div>
         <div class="col-sm-5">
@@ -752,20 +653,41 @@ const getAnalysisForm = () => {
             <div class="col-sm-auto">
                 <button disabled={videoSelectMapLength==0} class="btn btn-success mx-1" onClick={(event) => extractVideoText(event)}>Extract Text</button>
             </div>
-            <div class="col-sm-1">
-              {Object.keys(commentData).length > 0 ? 
-                <p class="my-auto">Extracted <LuCheckCircle style={{ color: "green"}}/></p>
-                : <></>
-              }
-            </div>
+            {/* <div class="col-sm-1">
+            </div> */}
             <div class="col-sm-auto">
                 <button disabled={Object.keys(commentData).length == 0} class="btn btn-success mx-1" onClick={(event) => analyzeVideoInformation(event)}>Get Analysis</button>
             </div>
         </div>
-        <div class="d-flex align-items-center">
+        <div class="d-flex align-items-center" style={{"transition-delay": "250ms"}}>
             {extractionLoading &&  
-              getLoadingAnimation()
+              getExtractionLoadingAnimation()
             }
+            {Object.keys(commentData).length > 0 && (!extractionLoading) && 
+                <p class="my-auto">Extracted information<LuCheckCircle style={{ color: "green"}}/></p>
+            }
+        </div>
+        <div class="d-flex align-items-center">
+            {
+              QALoading && 
+              getQALoadingAnimation()
+            }
+            {
+              Object.keys(QAAnalysis).length>0 && (!QALoading) && 
+              <p class="my-auto">Generated questions and answers <LuCheckCircle style={{ color: "green"}}/></p>
+            }
+        </div>
+        <div class="d-flex align-items-center">
+            {
+              summarizationLoading && 
+              getSummarizationLoadingAnimation()
+            }
+            {
+              Object.keys(videoAnalysis).length>0 && (!summarizationLoading) && 
+              <p class="my-auto">Generated summary <LuCheckCircle style={{ color: "green"}}/></p>
+            }
+        </div>
+        <div class="d-flex align-items-center">
             {textExtractionisError.length > 0 && 
               getWarningMessage(textExtractionisError)
             }
@@ -776,7 +698,7 @@ const getAnalysisForm = () => {
             {getDownArrowAnalysisList()}
         </div>
         }
-        <div class={`analysis-list ${toggleAnalysisList ? 'show' : ''}`} style={{"overflow-y": "scroll"}}>
+        <div class={`analysis-list ${toggleExtractionList ? 'show' : ''}`} style={{"overflow-y": "scroll"}}>
         {/* <div class={`analysis-list show`} style={{"overflow-y": "scroll"}}> */}
             {Object.keys(videoAnalysis).length>0 ?
             <div class="col">
