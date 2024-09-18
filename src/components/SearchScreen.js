@@ -10,7 +10,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { FaAnglesDown, FaAnglesUp } from "react-icons/fa6";
 import { LuCheckCircle } from "react-icons/lu";
 import { RiSettings4Fill } from "react-icons/ri";
-import { MdNavigateNext, MdNavigateBefore } from "react-icons/md";
+import { MdNavigateNext, MdNavigateBefore, MdRefresh } from "react-icons/md";
 import ReactPaginate from 'react-paginate';
 // import Select from 'react-select'
 // import { IoWarningSharp } from "react-icons/io5";
@@ -99,8 +99,7 @@ const SearchScreen = ({token, setToken, setActiveUser}) => {
     const [tokenExpired, setTokenExpired] = useState(false);
 
     useEffect(() => {
-      getQAModels();
-      getSummaryModels();
+      initializeMLModels();
     }, []);
 
     useEffect(() => {
@@ -128,6 +127,11 @@ const SearchScreen = ({token, setToken, setActiveUser}) => {
       }
       return toast.info(msg, structure);
     }
+
+  const initializeMLModels = async () => {
+    getQAModels();
+    getSummaryModels();
+  }
 
   const generateNewToken = async (username, password) => {
 
@@ -354,6 +358,7 @@ const SearchScreen = ({token, setToken, setActiveUser}) => {
      }).then(response => response.json())
      .then(data => {
         console.log("Summary Models - ");
+        console.log(typeof data);
         console.log(data);
         setSummaryModels(data);
      })
@@ -379,7 +384,16 @@ const SearchScreen = ({token, setToken, setActiveUser}) => {
      }).then(response => response.json())
      .then(data => {
         console.log("QA Models - ");
-        console.log(data);
+        // console.log(typeof(data));
+        // console.log(Object.prototype.toString.call({}));
+        // console.log(Object.prototype.toString.call([]))
+        // console.log(data);
+        console.log("Conditions");
+        // console.log(data!=undefined);
+        // console.log(data!=null);
+        // console.log(Object.prototype.toString.call(data));
+        // console.log(Object.prototype.toString.call(data) == '[object Array]');
+        // console.log((data!=undefined || data!=null || Object.prototype.toString.call(data) == '[object Array]'));
         setQAModels(data);
      })
      .catch(error => {
@@ -812,12 +826,12 @@ const getAnalysisForm = () => {
     <div class="form-group row my-3 py-3 justify-content-center">
         <div class="d-flex align-items-center">
             <div class="col-sm-auto">
-                <button disabled={videoSelectMapLength==0} class="btn btn-success mx-1" onClick={(event) => extractVideoText(event)}>Extract Text</button>
+                <button disabled={videoSelectMapLength==0 || extractionLoading} class="btn btn-primary mx-1" onClick={(event) => extractVideoText(event)}>Extract Text</button>
             </div>
             {/* <div class="col-sm-1">
             </div> */}
             <div class="col-sm-auto">
-                <button disabled={Object.keys(commentData).length == 0} class="btn btn-success mx-1" onClick={(event) => analyzeVideoInformation(event)}>Get Analysis</button>
+                <button disabled={Object.keys(commentData).length == 0 || summarizationLoading || QALoading} class="btn btn-primary mx-1" onClick={(event) => analyzeVideoInformation(event)}>Get Analysis</button>
             </div>
         </div>
         <div class="d-flex align-items-center" style={{"transition-delay": "250ms"}}>
@@ -855,6 +869,7 @@ const getAnalysisForm = () => {
         </div>
         {Object.keys(videoAnalysis).length>0 &&
           <div>
+            <hr style={{ color: "white", backgroundColor: "grey", height: "2px" }} />
             <div class="text-center"><strong>SUMMARY</strong></div>
             <hr style={{ color: "white", backgroundColor: "grey", height: "2px" }}/>
             {getDownArrowAnalysisList()}
@@ -949,7 +964,7 @@ const getSettingDropDown = () => {
       </a>
 
       <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-        <li><a class="dropdown-item">Select Summary Model</a></li>
+        <li><a class="dropdown-item">Select Summary Model <MdRefresh style={{ color: "black"}} onClick={()=>initializeMLModels()}/></a></li>
         <li>
           <div class="dropdown mx-3">
             <button data-mdb-button-init
@@ -960,9 +975,9 @@ const getSettingDropDown = () => {
               aria-expanded="false"
             >{selectedSummaryModel}</button>
             <ul class="dropdown-menu" aria-labelledby="dropdownMenuSummaryButton">
-                {summaryModels.map((summaryModel) => 
+                {(summaryModels!=undefined && summaryModels!=null && Object.prototype.toString.call(summaryModels) == '[object Array]') ? summaryModels.map((summaryModel) => 
                 <li><a class="dropdown-item" style={{"backgroundColor": summaryModel==selectedSummaryModel ? "green":""}} onClick={()=>setSelectedSummaryModel(summaryModel)}>{summaryModel}</a></li>
-              )}
+                ) : <></>}
             </ul>
           </div>
         </li>
@@ -978,9 +993,9 @@ const getSettingDropDown = () => {
               aria-expanded="false"
             >{selectedQAModel}</button>
             <ul class="dropdown-menu" aria-labelledby="dropdownMenuQAButton">
-                {qaModels.map((qaModel) => 
+                {(qaModels!=undefined && qaModels!=null && Object.prototype.toString.call(qaModels) == '[object Array]') ? qaModels.map((qaModel) => 
                 <li><a class="dropdown-item" style={{"backgroundColor": qaModel==selectedQAModel ? "green":""}} onClick={()=>setSelectedQAModel(qaModel)}>{qaModel}</a></li>
-              )}
+                ) : <></>}
             </ul>
           </div>
         </li>
@@ -1052,7 +1067,7 @@ const getSearchForm = () => {
       {getSettingDropDown()}
     </div>
     <div class="col-sm-1">
-        <button disabled={!searchText} class="btn btn-success mx-1" onClick={(event) => getSearchResults(event)}>Search</button>
+        <button disabled={!searchText} class="btn btn-primary mx-1" onClick={(event) => getSearchResults(event)}>Search</button>
     </div>
   </div>
   {tokenExpired &&
