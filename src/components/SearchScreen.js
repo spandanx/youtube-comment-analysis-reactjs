@@ -26,7 +26,7 @@ import './styles/SummaryModelSelection.css';
 import './styles/videopagination.css';
 
 // import CryptoJS from "crypto-js";
-import {encryptData, decryptData, loginPath, videoSearchUrl, videoSearchByTokenUrl, commentAnalysisUrl, extractCommentUrl, 
+import {encryptData, decryptData, loginUrl, videoSearchUrl, videoSearchByTokenUrl, commentAnalysisUrl, extractCommentUrl, 
   questionAnsweringUrl, getSummaryModelListUrl, getQAModelListUrl, healthCheckUrl} from './Common/CommonFunctions';
 import {Link } from "react-router-dom";
 
@@ -139,7 +139,7 @@ const SearchScreen = ({token, setToken, setActiveUser}) => {
 
       let newToken = {};
 
-      await fetch(loginPath, {
+      await fetch(loginUrl, {
         method: 'post',
         // headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         body: formData
@@ -285,14 +285,27 @@ const SearchScreen = ({token, setToken, setActiveUser}) => {
       });
   }
 
-  const getSearchResultsByPageToken = (pageToken) => {
+  const getSearchResultsByPageToken = async (pageToken) => {
     // event.preventDefault();
     setToggleVideoList(false);
     console.log("querying - " + searchText);
     var queryUrl = videoSearchByTokenUrl + "?searchText=" + searchText + "&pageToken=" + pageToken + "&max_results=10"
     console.log("url - ");
     console.log(queryUrl);
-    fetch(queryUrl)
+
+    let workingToken = await checkAndUpdateToken();
+    console.log("workingToken");
+    console.log(workingToken);
+
+    fetch(queryUrl,
+      {
+        method: 'get',
+        headers: {
+          'Content-Type':'application/json',
+          'Authorization': workingToken.token_type + " " + workingToken.access_token
+        }
+      }
+    )
         .then(response => response.json())
         .then(data => {
           console.log(data);
@@ -325,10 +338,19 @@ const SearchScreen = ({token, setToken, setActiveUser}) => {
       });
   }
 
-  const getSummaryModels = () => {
+  const getSummaryModels = async() => {
+
+    let workingToken = await checkAndUpdateToken();
+    console.log("workingToken");
+    console.log(workingToken);
+
+
     fetch(getSummaryModelListUrl, {
       method: 'get',
-      headers: {'Content-Type':'application/json'}
+      headers: {
+          'Content-Type':'application/json',
+          'Authorization': workingToken.token_type + " " + workingToken.access_token
+        }
      }).then(response => response.json())
      .then(data => {
         console.log("Summary Models - ");
@@ -342,10 +364,18 @@ const SearchScreen = ({token, setToken, setActiveUser}) => {
     });
   }
 
-  const getQAModels = () => {
+  const getQAModels = async () => {
+
+    let workingToken = await checkAndUpdateToken();
+    console.log("workingToken");
+    console.log(workingToken);
+
     fetch(getQAModelListUrl, {
       method: 'get',
-      headers: {'Content-Type':'application/json'}
+      headers: {
+        'Content-Type':'application/json',
+        'Authorization': workingToken.token_type + " " + workingToken.access_token
+        }
      }).then(response => response.json())
      .then(data => {
         console.log("QA Models - ");
@@ -359,10 +389,10 @@ const SearchScreen = ({token, setToken, setActiveUser}) => {
     });
   }
 
-  const extractVideoText = (event) => {
+  const extractVideoText = async (event) => {
     event.preventDefault();
     setExtractionLoading(true);
-    setToggleExtractionList(false);
+    // setToggleExtractionList(false);
     setTextExtractionisError("");
     console.log("analyzing - " + searchText);
     // var queryUrl = commentAnalysisUrl;
@@ -370,10 +400,17 @@ const SearchScreen = ({token, setToken, setActiveUser}) => {
       "ids": Object.keys(videoSelectMap)
      });
     //  console.log();
+
+    let workingToken = await checkAndUpdateToken();
+    console.log("workingToken");
+    console.log(workingToken);
      
     fetch(extractCommentUrl, {
       method: 'post',
-      headers: {'Content-Type':'application/json'},
+      headers: {
+        'Content-Type':'application/json',
+        'Authorization': workingToken.token_type + " " + workingToken.access_token
+      },
       body: JSON.stringify({
         "ids": Object.keys(videoSelectMap)
        })
@@ -405,14 +442,15 @@ const SearchScreen = ({token, setToken, setActiveUser}) => {
   }
   const analyzeVideoInformation = (event) => {
     event.preventDefault();
-    getSummaryInformation(event);
-    getQuestionAnswer(event);
+    getSummaryInformation();
+    getQuestionAnswer();
   }
 
-  const getSummaryInformation = (event) => {
-    event.preventDefault();
+  const getSummaryInformation = async (event) => {
+    // event.preventDefault();
     setSummarizationLoading(true);
-    setToggleAnalysisList(false);
+    setExtractionAnalysisLoading(false);
+    setToggleExtractionList(false);
     setVideoAnalysisError("");
     setVideoAnalysis({});
     console.log("analyzing - " + searchText);
@@ -422,10 +460,17 @@ const SearchScreen = ({token, setToken, setActiveUser}) => {
       "summModel": "Abstractive - BARTAbstractiveSummarizer"
      });
     //  console.log();
+
+    let workingToken = await checkAndUpdateToken();
+    console.log("workingToken");
+    console.log(workingToken);
      
     fetch(commentAnalysisUrl, {
       method: 'post',
-      headers: {'Content-Type':'application/json'},
+      headers: {
+        'Content-Type':'application/json',
+        'Authorization': workingToken.token_type + " " + workingToken.access_token
+      },
       body: JSON.stringify({
         "texts": commentData.statements,
         "summModel": "Abstractive - BARTAbstractiveSummarizer"
@@ -439,7 +484,10 @@ const SearchScreen = ({token, setToken, setActiveUser}) => {
        console.log(data);
       //  if (!isNaN(data.summary)){
         setSummarizationLoading(false);
-        setToggleAnalysisList(true);
+        // setToggleAnalysisList(true);
+        setExtractionAnalysisLoading(true);
+        setToggleExtractionList(true);
+        // setToggleExtractionList(true);
         setVideoAnalysis(data);
 
         setVideoAnalysisError("");
@@ -448,14 +496,19 @@ const SearchScreen = ({token, setToken, setActiveUser}) => {
       console.log("ERROR Occurred - ");
       console.error(error);
       setSummarizationLoading(false);
+      setToggleExtractionList(false);
+      setExtractionAnalysisLoading(false);
       setVideoAnalysisError("Error! Could not process the analysis request!");
     });
   }
 
-  const getQuestionAnswer = (event) => {
-    event.preventDefault();
+  const getQuestionAnswer = async (event) => {
+    // event.preventDefault();
     setQALoading(true);
-    setQAExtractionList(false);
+    // setQAExtractionList(false);
+    // setToggleAnalysisList(false);
+    setExtractionAnalysisLoading(false);
+    setToggleExtractionList(false);
     setVideoAnalysisError("");
     setQAAnalysis({});
     console.log("analyzing - " + searchText);
@@ -466,10 +519,16 @@ const SearchScreen = ({token, setToken, setActiveUser}) => {
       "qaModel": "DistilbertQuestionAnswering"
      });
     //  console.log();
+    let workingToken = await checkAndUpdateToken();
+    console.log("workingToken");
+    console.log(workingToken);
      
     fetch(questionAnsweringUrl, {
       method: 'post',
-      headers: {'Content-Type':'application/json'},
+      headers: {
+        'Content-Type':'application/json',
+        'Authorization': workingToken.token_type + " " + workingToken.access_token
+      },
       body: JSON.stringify({
         "context": commentData.statements,
         "questions": commentData.questions,
@@ -485,18 +544,23 @@ const SearchScreen = ({token, setToken, setActiveUser}) => {
        console.log(isNaN(data.question));
       //  if (!isNaN(data.question)){
         setQALoading(false);
-        setQAExtractionList(true);
+        // setQAExtractionList(true);
+        // setToggleAnalysisList(true);
+        setToggleExtractionList(true);
+        setExtractionAnalysisLoading(true);
         setQAAnalysis({"questions" : data});
         setVideoAnalysisError("");
         console.log("Object.keys(QAAnalysis).length");
         console.log(Object.keys(QAAnalysis).length);
-        console.log("QAAnalysis.questions.length");
-        console.log(QAAnalysis.questions.length);
+        // console.log("QAAnalysis.questions.length");
+        // console.log(QAAnalysis.questions.length);
      })
      .catch(error => {
       console.log("ERROR Occurred - ");
       console.error(error);
       setQALoading(false);
+      setExtractionAnalysisLoading(false);
+      setToggleExtractionList(false);
       setVideoAnalysisError("Error! Could not process the analysis request!");
       console.log(Object.keys(videoAnalysis).length);
       console.log(isNaN(videoAnalysis.question));
@@ -791,6 +855,7 @@ const getAnalysisForm = () => {
         </div>
         {Object.keys(videoAnalysis).length>0 &&
           <div>
+            <div class="text-center"><strong>SUMMARY</strong></div>
             <hr style={{ color: "white", backgroundColor: "grey", height: "2px" }}/>
             {getDownArrowAnalysisList()}
         </div>
@@ -799,7 +864,6 @@ const getAnalysisForm = () => {
         {/* <div class={`analysis-list show`} style={{"overflow-y": "scroll"}}> */}
             {Object.keys(videoAnalysis).length>0 ?
             <div class="col">
-              <div class="text-lft">SUMMARY</div>
                 {videoAnalysis.summary.map((summary_text)=>(
                   <div class="text-left">
                     <hr style={{ color: "white", backgroundColor: "grey", height: "2px" }} />
@@ -814,8 +878,8 @@ const getAnalysisForm = () => {
             }
             <hr style={{ color: "white", backgroundColor: "grey", height: "2px" }} />
             <div class="col">
-              {Object.keys(QAAnalysis).length>0 ?
-                <div class="text-center">QUESTIONS</div>
+              {(Object.keys(QAAnalysis).length>0 && QAAnalysis.questions.length>0) ?
+                <div class="text-center"><strong>QUESTIONS</strong></div>
               :
                 <div></div>
               }
@@ -850,7 +914,7 @@ const getVideoListForm = () => {
           }
           {(videoArray!= null && videoArray.length > 0) || (fullVideoObject["nextPageToken"] != null) ? 
             <div class="col">
-                <div class="text-center">VIDEOS</div>
+                <div class="text-center"><strong>VIDEOS</strong></div>
               <hr style={{ color: "white", backgroundColor: "grey", height: "2px" }} />
               {getDownArrowVideoList()}
               {toggleVideoList ? 

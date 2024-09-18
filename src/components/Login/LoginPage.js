@@ -4,7 +4,7 @@ import {Link } from "react-router-dom";
 import '../styles/Login.css';
 import { useNavigate } from 'react-router-dom';
 
-import {encryptData, loginPath} from '../Common/CommonFunctions';
+import {encryptData, loginUrl} from '../Common/CommonFunctions';
 
 // import CryptoJS from "crypto-js";
 
@@ -51,7 +51,7 @@ function Login({setToken, setActiveUser}) {
 
 
       
-      fetch(loginPath, {
+      fetch(loginUrl, {
         method: 'post',
         // headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         body: formData

@@ -20,6 +20,7 @@ const TopNavBar = ({activeUser, setToken, setActiveUser}) => {
     console.log("Calling useEffect()");
     console.log("Initial location");
     // console.log(location);
+    loadSessionStorage();
   }, []);
 
   useEffect(()=>{
@@ -40,6 +41,23 @@ const TopNavBar = ({activeUser, setToken, setActiveUser}) => {
       draggable: true,
       progress: undefined,
       });
+  }
+
+  const loadSessionStorage = async () => {
+    console.log("calling loadSessionStorage()");
+    let userData = JSON.parse(sessionStorage.getItem('userData'));
+    if (userData == undefined || userData == null){
+      console.log("userData is not present in session storage, routing to login page");
+      navigate('/login');
+    }
+    else{
+      console.log("userData is present in session storage");
+      console.log(userData);
+      let username = userData.activeuser;
+      let token = userData.token;
+      setActiveUser(username);
+      setToken(token);
+    }
   }
 
   const logout = () => {

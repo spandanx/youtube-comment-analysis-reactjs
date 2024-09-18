@@ -1,7 +1,7 @@
 import CryptoJS from "crypto-js";
 
 const salt = "ajsPamkanAmMnam22";
-const loginPath = "http://127.0.0.1:8000/token/"
+const loginUrl = "http://127.0.0.1:8000/token/"
 const videoSearchUrl = "http://127.0.0.1:8000/video-search/"
 const videoSearchByTokenUrl = "http://127.0.0.1:8000/video-search-by-token/"
 const commentAnalysisUrl = "http://127.0.0.1:8000/summarize-text/"
@@ -30,6 +30,6 @@ const decryptData = (text) => {
     return data;
 };
 
-export {salt, encryptData, decryptData, loginPath, videoSearchUrl, videoSearchByTokenUrl, commentAnalysisUrl, extractCommentUrl, 
+export {salt, encryptData, decryptData, loginUrl, videoSearchUrl, videoSearchByTokenUrl, commentAnalysisUrl, extractCommentUrl, 
     questionAnsweringUrl, getSummaryModelListUrl, getQAModelListUrl, healthCheckUrl
 };
