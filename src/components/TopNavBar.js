@@ -43,7 +43,7 @@ const TopNavBar = ({activeUser, setToken, setActiveUser}) => {
   }
 
   const logout = () => {
-    localStorage.removeItem('userData');
+    sessionStorage.removeItem('userData');
     setToken("");
     setActiveUser("");
     navigate('/login');

@@ -24,6 +24,12 @@ import './styles/LoadingQAModel.css';
 // import './styles/ModelSelection.css';
 import './styles/SummaryModelSelection.css';
 import './styles/videopagination.css';
+
+// import CryptoJS from "crypto-js";
+import {encryptData, decryptData, loginPath, videoSearchUrl, videoSearchByTokenUrl, commentAnalysisUrl, extractCommentUrl, 
+  questionAnsweringUrl, getSummaryModelListUrl, getQAModelListUrl, healthCheckUrl} from './Common/CommonFunctions';
+
+// import {generateTokenAndLogin} from './Login/LoginPage'
 // import './styles/SummaryNestedModelSelection.css';
 
 // import {
@@ -36,15 +42,7 @@ import {
   TransitionGroup,
 } from 'react-transition-group';
 
-const SearchScreen = ({token}) => {
-
-  const videoSearchUrl = "http://127.0.0.1:8000/video-search/"
-  const videoSearchByTokenUrl = "http://127.0.0.1:8000/video-search-by-token/"
-  const commentAnalysisUrl = "http://127.0.0.1:8000/summarize-text/"
-  const extractCommentUrl = "http://127.0.0.1:8000/extract-text/"
-  const questionAnsweringUrl = "http://127.0.0.1:8000/answer-question/"
-  const getSummaryModelListPath = "http://127.0.0.1:8000/summarize-models/"
-  const getQAModelListPath = "http://127.0.0.1:8000/question-answering-models/"
+const SearchScreen = ({token, setToken, setActiveUser}) => {
 
   // const navigate = useNavigate();
 
@@ -128,15 +126,127 @@ const SearchScreen = ({token}) => {
       return toast.info(msg, structure);
     }
 
-  const getSearchResults = (event) => {
+  const generateNewToken = async (username, password) => {
+
+      const formData = new FormData();
+      formData.append("grant_type", "password");
+      formData.append("username", username);
+      formData.append("password", password);
+      console.log("Called generateNewToken()");
+
+      let newToken = {};
+
+      await fetch(loginPath, {
+        method: 'post',
+        // headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: formData
+       }).then(response => response.json())
+       .then(data => {
+          console.log("New Token");
+          console.log(data);
+          newToken = data;
+          setToken(data);
+          setActiveUser(username);
+          
+          let toStore = {
+            "activeuser": username,
+            "token": data,
+            "password": encryptData(password)
+          };
+          sessionStorage.setItem('userData', JSON.stringify(toStore));
+          // navigate('/search', {token : data});
+       })
+       .catch(error => {
+        console.log("ERROR Occurred - ");
+        console.error(error);
+      });
+      return newToken;
+  }
+
+  const checkAndUpdateToken = async () => {
+    console.log("Calling healthCheck");
+    let fetchNewTokenFlag = false;
+    let userData = JSON.parse(sessionStorage.getItem('userData'));
+    let username = userData.activeuser;
+    let password = decryptData(userData.password);
+    console.log(userData);
+    await fetch(healthCheckUrl,
+      {
+        method: 'get',
+        headers: {
+          'Content-Type':'application/json',
+          'Authorization': token.token_type + " " + token.access_token
+        }
+      }
+    )
+    .then(response => {
+      // console.log(response.status);
+      // console.log("response.headers");
+      // console.log(...response.headers);
+      // console.log(response.headers.has('reason'));
+      // console.log(response.status == "403");
+      // console.log(response.headers.get('reason') == "TOKEN_EXPIRED");
+      if (response.status == "403" && response.headers.has('reason') && response.headers.get('reason') == "TOKEN_EXPIRED"){
+        console.log("Need to fetch token");
+        if (password == undefined || password == null){
+          console.log("Keep me signed in was not enabled, navigating to login screen");
+        }
+        else {
+          console.log("Going to fetch new token");
+          fetchNewTokenFlag = true;
+        }
+        // generateTokenAndLogin();
+      }
+
+      // response.headers.forEach((value, key) => console.log("header:", key, 'value:', value));
+      return response.json()})
+    .then(data => {
+      console.log("HealthCheck data");
+      console.log(data);
+    })
+    .catch(error => {
+      console.log("ERROR - HealthCheck failed");
+      console.log(error);
+  });
+  console.log(fetchNewTokenFlag);
+  let workingToken = token;
+  if (fetchNewTokenFlag){
+      console.log("fetching new token");
+      workingToken = await generateNewToken(username, password);
+    }
+    return workingToken;
+  }
+
+  const getSearchResults = async (event) => {
     event.preventDefault();
     setToggleVideoList(false);
     console.log("querying - " + searchText);
     var queryUrl = videoSearchUrl + "?searchText=" + searchText + "&max_results="+"10"
     console.log("url - ");
     console.log(queryUrl);
-    fetch(queryUrl)
-        .then(response => response.json())
+
+    let workingToken = await checkAndUpdateToken();
+    console.log("workingToken");
+    console.log(workingToken);
+    
+
+    await fetch(queryUrl,
+      {
+        method: 'get',
+        headers: {
+          'Content-Type':'application/json',
+          'Authorization': workingToken.token_type + " " + workingToken.access_token
+        }
+      }
+    )
+        .then(response => {
+          console.log("response.status");
+          console.log(response.status);
+          console.log("response.headers");
+          console.log(...response.headers);
+          console.log(response.headers.has('reason'));
+          // response.headers.forEach((value, key) => console.log("header:", key, 'value:', value));
+          return response.json()})
         .then(data => {
           console.log(data);
           setVideoSearchError("");
@@ -209,7 +319,7 @@ const SearchScreen = ({token}) => {
   }
 
   const getSummaryModels = () => {
-    fetch(getSummaryModelListPath, {
+    fetch(getSummaryModelListUrl, {
       method: 'get',
       headers: {'Content-Type':'application/json'}
      }).then(response => response.json())
@@ -226,7 +336,7 @@ const SearchScreen = ({token}) => {
   }
 
   const getQAModels = () => {
-    fetch(getQAModelListPath, {
+    fetch(getQAModelListUrl, {
       method: 'get',
       headers: {'Content-Type':'application/json'}
      }).then(response => response.json())
@@ -557,26 +667,6 @@ const getSampleTransition = () => {
 
 const getVideoListPagination = (prevToken, nextToken) => {
   return (
-    // <ReactPaginate
-    //       containerClassName={"pagination"}
-    //       pageClassName={"page-item"}
-    //       activeClassName={"active-page"}
-    //       breakLabel="..."
-    //       nextLabel="next >"
-    //       pageRangeDisplayed={5}
-    //       pageCount={itemCount}
-    //       previousLabel="< previous"
-    //       renderOnZeroPageCount={null}
-    //   />
-    // <div class="d-flex align-items-center">
-    //     <div class="p-8 bd-highlight"></div>
-    //     <div class="p-2 bd-highlight">
-    //     <MdNavigateBefore/>Previous Page
-    //     </div>
-    //     <div class="p-2 bd-highlight">
-    //       Next Page<MdNavigateNext/>
-    //     </div>
-    //   </div>
     <form class="form-horizontal container" role="form">
       <div class="form-group row">
         <div class="col-sm-10"></div>
@@ -745,19 +835,6 @@ const getAnalysisForm = () => {
   )
 }
 
-// const getVideoPagination = () => {
-//   return (
-//     <ReactPaginate
-//         breakLabel="..."
-//         nextLabel="next >"
-//         pageRangeDisplayed={5}
-//         pageCount={10}
-//         previousLabel="< previous"
-//         renderOnZeroPageCount={null}
-//       />
-//   );
-// }
-
 const getVideoListForm = () => {
   return (
     <div>
@@ -787,36 +864,6 @@ const getVideoListForm = () => {
   )
 }
 
-// const getSummaryModelList = () => {
-//   let modelList = [];
-//     summaryModels.forEach(function(summaryModel) {
-//       modelList.push(
-//         <a onClick={(summaryModel)=>setSelectedSummaryModel(summaryModel)}>{summaryModel}</a>
-//       );
-//     });
-//     return modelList;
-// }
-
-// const getSettingDropDown = () => {
-//   return (
-//     <div class="btn-group">
-//     <a type="button" class="nav-link dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-//       <RiSettings4Fill style={{ color: "black"}}/>
-//     </a>
-//     <div class="dropdown-menu dropdown-menu-right">
-//       <a class="dropdown-item fw-bold">{"ABC"}</a>
-//       <div class="dropdown-divider"></div>
-//       <a class="dropdown-item">Sample Account</a>
-//       <div class="modelselection">
-//         <button class="modelselectionbtn">{selectedModel}</button>
-//         <div class="modelselection-content">
-//           {getSummaryModelList()}
-//         </div>
-//       </div>
-//     </div>
-//   </div>
-//   )
-// }
 
 const getSettingDropDown = () => {
   return (
@@ -829,15 +876,7 @@ const getSettingDropDown = () => {
         aria-expanded="false">
         <RiSettings4Fill style={{ color: "black"}}/>
       </a>
-      {/* <button data-mdb-button-init
-        data-mdb-ripple-init data-mdb-dropdown-init class="btn btn-primary dropdown-toggle"
-        type="button"
-        id="dropdownMenuButton"
-        data-mdb-toggle="dropdown"
-        aria-expanded="false"
-      >
-        Select
-      </button> */}
+
       <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
         <li><a class="dropdown-item">Select Summary Model</a></li>
         <li>
@@ -856,14 +895,6 @@ const getSettingDropDown = () => {
             </ul>
           </div>
         </li>
-        {/* <li><a class="dropdown-item">{selectedModel}</a></li> */}
-        {/* <li>
-          <ul class="dropdown-menu dropdown-submenu">
-          {summaryModels.map((summaryModel) => 
-            <li><a class="dropdown-item" onClick={()=>setSelectedModel(summaryModel)}>{summaryModel}</a></li>
-          )}
-          </ul>
-        </li> */}
         <div class="dropdown-divider"></div>
         <li><a class="dropdown-item">Select Question Answer Model</a></li>
         <li>

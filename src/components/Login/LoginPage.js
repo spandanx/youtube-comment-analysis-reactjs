@@ -4,13 +4,17 @@ import {Link } from "react-router-dom";
 import '../styles/Login.css';
 import { useNavigate } from 'react-router-dom';
 
+import {encryptData, loginPath} from '../Common/CommonFunctions';
+
+// import CryptoJS from "crypto-js";
 
 function Login({setToken, setActiveUser}) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
+  const [keepSignedIn, setKeepSignedIn] = useState(false);
 
-  const loginPath = "http://127.0.0.1:8000/token/"
+  // const loginPath = "http://127.0.0.1:8000/token/"
 
   const navigate = useNavigate();
   
@@ -25,6 +29,11 @@ function Login({setToken, setActiveUser}) {
 
   const loginUser = (event) => {
     event.preventDefault();
+    generateTokenAndLogin();
+  };
+
+
+  const generateTokenAndLogin = () => {
     const formErrors = validateForm();
     if (Object.keys(formErrors).length > 0) {
       setErrors(formErrors);
@@ -37,6 +46,10 @@ function Login({setToken, setActiveUser}) {
       formData.append("grant_type", "password");
       formData.append("username", username);
       formData.append("password", password);
+
+      // encryptData(password);
+
+
       
       fetch(loginPath, {
         method: 'post',
@@ -48,10 +61,15 @@ function Login({setToken, setActiveUser}) {
           console.log(data);
           setToken(data);
           setActiveUser(username);
-          localStorage.setItem('userData', JSON.stringify({
+          
+          let toStore = {
             "activeuser": username,
             "token": data
-          }));
+          };
+          if (keepSignedIn){
+            toStore["password"] = encryptData(password);
+          }
+          sessionStorage.setItem('userData', JSON.stringify(toStore));
           navigate('/search', {token : data});
        })
        .catch(error => {
@@ -59,7 +77,7 @@ function Login({setToken, setActiveUser}) {
         console.error(error);
       });
     }
-  };
+  }
 
 
   return (
@@ -97,6 +115,10 @@ function Login({setToken, setActiveUser}) {
                     </Form.Control.Feedback>
                 </Form.Group>
 
+                <div class="d-flex justify-content-left my-3">
+                    <input value = "test" class = "align-items-stretch" type = "checkbox" checked={keepSignedIn} onChange = {() => {setKeepSignedIn(!keepSignedIn)}} />
+                    Keep me signed in
+                </div>
 
                 <Button variant="primary" type="submit" className="login-button">
                     Login

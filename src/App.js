@@ -35,7 +35,7 @@ function App() {
         {/* <LeftNavBar/> */}
           <Routes>
             <Route path="/" element={<Login setToken={setToken} setActiveUser={setActiveUser}/>}/>
-            <Route path="/search" element={<SearchScreen token={authToken}/>}/>
+            <Route path="/search" element={<SearchScreen setToken={setToken} setActiveUser={setActiveUser} token={authToken}/>}/>
             <Route path="/login" element={<Login setToken={setToken} setActiveUser={setActiveUser}/>}/>
             <Route path="/register" element={<RegistrationPage/>}/>
             {/* <Route path="/"/> */}
