@@ -28,6 +28,7 @@ import './styles/videopagination.css';
 // import CryptoJS from "crypto-js";
 import {encryptData, decryptData, loginPath, videoSearchUrl, videoSearchByTokenUrl, commentAnalysisUrl, extractCommentUrl, 
   questionAnsweringUrl, getSummaryModelListUrl, getQAModelListUrl, healthCheckUrl} from './Common/CommonFunctions';
+import {Link } from "react-router-dom";
 
 // import {generateTokenAndLogin} from './Login/LoginPage'
 // import './styles/SummaryNestedModelSelection.css';
@@ -94,6 +95,8 @@ const SearchScreen = ({token, setToken, setActiveUser}) => {
 
 
     const accountTypes = ["EMPLOYEE", "DEPARTMENT", "AUDITOR"];
+
+    const [tokenExpired, setTokenExpired] = useState(false);
 
     useEffect(() => {
       getQAModels();
@@ -168,8 +171,8 @@ const SearchScreen = ({token, setToken, setActiveUser}) => {
     let fetchNewTokenFlag = false;
     let userData = JSON.parse(sessionStorage.getItem('userData'));
     let username = userData.activeuser;
-    let password = decryptData(userData.password);
-    console.log(userData);
+    let password = userData.password;
+    // console.log(userData);
     await fetch(healthCheckUrl,
       {
         method: 'get',
@@ -190,6 +193,7 @@ const SearchScreen = ({token, setToken, setActiveUser}) => {
         console.log("Need to fetch token");
         if (password == undefined || password == null){
           console.log("Keep me signed in was not enabled, navigating to login screen");
+          setTokenExpired(true);
         }
         else {
           console.log("Going to fetch new token");
@@ -208,11 +212,14 @@ const SearchScreen = ({token, setToken, setActiveUser}) => {
       console.log("ERROR - HealthCheck failed");
       console.log(error);
   });
+
+  //########################## Fetch New Token Code
   console.log(fetchNewTokenFlag);
   let workingToken = token;
   if (fetchNewTokenFlag){
       console.log("fetching new token");
-      workingToken = await generateNewToken(username, password);
+      let decryptedPassword = decryptData(password);
+      workingToken = await generateNewToken(username, decryptedPassword);
     }
     return workingToken;
   }
@@ -984,6 +991,11 @@ const getSearchForm = () => {
         <button disabled={!searchText} class="btn btn-success mx-1" onClick={(event) => getSearchResults(event)}>Search</button>
     </div>
   </div>
+  {tokenExpired &&
+    <div class="form-group mx-3">
+      <p class="justify-content-center">Token expired! Please login again <Link to="/login">here</Link></p>
+    </div>
+  }
 </form>
   );
 }
