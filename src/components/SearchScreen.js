@@ -11,6 +11,7 @@ import { FaAnglesDown, FaAnglesUp } from "react-icons/fa6";
 import { LuCheckCircle } from "react-icons/lu";
 import { RiSettings4Fill } from "react-icons/ri";
 import { MdNavigateNext, MdNavigateBefore, MdRefresh } from "react-icons/md";
+// import { BiErrorCircle } from "react-icons/bi";
 import ReactPaginate from 'react-paginate';
 // import Select from 'react-select'
 // import { IoWarningSharp } from "react-icons/io5";
@@ -439,7 +440,12 @@ const SearchScreen = ({token, setToken, setActiveUser}) => {
         // setToggleExtractionList(true);
         // setVideoAnalysis(data);
         setCommentData(data);
-        setTextExtractionisError("");
+        if ('detail' in data){
+          setTextExtractionisError(data["detail"]);
+        }
+        else{
+          setTextExtractionisError("");
+        }
      })
      .catch(error => {
         // console.log("Printing Status - ERROR");
@@ -838,7 +844,7 @@ const getAnalysisForm = () => {
             {extractionLoading &&  
               getExtractionLoadingAnimation()
             }
-            {Object.keys(commentData).length > 0 && (!extractionLoading) && 
+            {Object.keys(commentData).length > 0 && (!extractionLoading) && (textExtractionisError == "") &&
                 <p class="my-auto">Extracted information<LuCheckCircle style={{ color: "green"}}/></p>
             }
         </div>
@@ -877,7 +883,7 @@ const getAnalysisForm = () => {
         }
         <div class={`analysis-list ${toggleExtractionList ? 'show' : ''}`} style={{"overflow-y": "scroll"}}>
         {/* <div class={`analysis-list show`} style={{"overflow-y": "scroll"}}> */}
-            {Object.keys(videoAnalysis).length>0 ?
+            {(Object.keys(videoAnalysis).length>0 && videoAnalysis.summary!=undefined && videoAnalysis.summary!=null && Object.prototype.toString.call(videoAnalysis.summary) == '[object Array]') ?
             <div class="col">
                 {videoAnalysis.summary.map((summary_text)=>(
                   <div class="text-left">
