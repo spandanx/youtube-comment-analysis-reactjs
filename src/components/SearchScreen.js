@@ -11,6 +11,11 @@ import { FaAnglesDown, FaAnglesUp } from "react-icons/fa6";
 import { LuCheckCircle } from "react-icons/lu";
 import { RiSettings4Fill } from "react-icons/ri";
 import { MdNavigateNext, MdNavigateBefore, MdRefresh } from "react-icons/md";
+
+import Container from 'react-bootstrap/Container';
+import Nav from 'react-bootstrap/Nav';
+import Navbar from 'react-bootstrap/Navbar';
+
 // import { BiErrorCircle } from "react-icons/bi";
 import ReactPaginate from 'react-paginate';
 // import Select from 'react-select'
@@ -47,7 +52,7 @@ import {
 const SearchScreen = ({token, setToken, setActiveUser, activeuser}) => {
 
   // const navigate = useNavigate();
-
+    const [selectedModule, setSelectedModule] = useState('Vidoes');
 
     const [searchText, setSearchText] = useState('');
     const [searchQuestions, setSearchQuestions] = useState('');
@@ -871,7 +876,7 @@ const getVideoList = () => {
   return (
   // <CSSTransition in={anim} timeout={2000} classNames="videoitem">
     // <div class={`videocustom ${toggle ? 'show' : ''}`}>
-    <div class={`videocustom ${toggleVideoList ? 'show' : ''}`} style={{"overflow-y": "scroll"}}>
+    <div class={`videocustom ${toggleVideoList ? 'show' : ''}`} style={{"overflow-y": "scroll", backgroundColor: "#f0f0f0", borderRadius: "5px", padding: "10px"}}>
       <input value = "test" class = "align-items-stretch" type = "checkbox" checked={checkIfAllSelected()} onChange = {(event) => updateVideoMapAll(videoArray)}/>
       {/*   */}
       {getVideoListPagination(fullVideoObject["prevPageToken"], fullVideoObject["nextPageToken"])}
@@ -912,19 +917,35 @@ const addLineBreak = (str) => {
   });
 }
 
+const getNavBarModules = () => {
+  const selectedStyle = {color:"black", borderRadius: "10px / 50px", boxShadow: "0 4px 5px -2px grey"}
+  return (
+  <Navbar style={{backgroundColor: "#f0f0f0"}} data-bs-theme="dark">
+      <Container>
+        <Nav className="me-auto text-white">
+          <Nav.Link as={Link} onClick={()=>setSelectedModule('Videos')} style={selectedModule=="Videos"? selectedStyle: {}}>
+            Videos
+          </Nav.Link>
+          {
+          Object.keys(commentData).length > 0 && 
+          <Nav.Link as={Link}  onClick={()=>setSelectedModule('Summary')} style={selectedModule=="Summary"? selectedStyle: {}}>
+            Summary and Questions
+          </Nav.Link>
+          }
+          {!(Object.keys(commentData).length == 0 || summarizationLoading || QALoading) && (textExtractionisError == "") && 
+          <Nav.Link as={Link}  onClick={()=>setSelectedModule('Custom Questions')} style={selectedModule=="Custom Questions"? selectedStyle: {}}>
+            Custom Questions
+          </Nav.Link>
+          }
+        </Nav>
+      </Container>
+    </Navbar>
+  )
+}
+
 const getAnalysisForm = () => {
   return (
     <div class="form-group row my-3 py-3 justify-content-center">
-        <div class="d-flex align-items-center">
-            <div class="col-sm-auto">
-                <button disabled={videoSelectMapLength==0 || extractionLoading} class="btn btn-primary mx-1" onClick={(event) => extractVideoText(event)}>Extract Text</button>
-            </div>
-            {/* <div class="col-sm-1">
-            </div> */}
-            <div class="col-sm-auto">
-                <button disabled={Object.keys(commentData).length == 0 || summarizationLoading || QALoading} class="btn btn-primary mx-1" onClick={(event) => analyzeVideoInformation(event)}>Get Analysis</button>
-            </div>
-        </div>
         <div class="d-flex align-items-center" style={{"transition-delay": "250ms"}}>
             {extractionLoading &&  
               getExtractionLoadingAnimation()
@@ -958,10 +979,6 @@ const getAnalysisForm = () => {
               getWarningMessage(textExtractionisError)
             }
         </div>
-        {/* {!(Object.keys(commentData).length == 0 || summarizationLoading || QALoading) && (textExtractionisError == "") &&  */}
-        {true && 
-          getCustomQuestionForm()
-        }
         {Object.keys(videoAnalysis).length>0 &&
           <div>
             <hr style={{ color: "white", backgroundColor: "grey", height: "2px" }} />
@@ -973,7 +990,7 @@ const getAnalysisForm = () => {
         <div class={`analysis-list ${toggleExtractionList ? 'show' : ''}`} style={{"overflow-y": "scroll"}}>
         {/* <div class={`analysis-list show`} style={{"overflow-y": "scroll"}}> */}
             {(Object.keys(videoAnalysis).length>0 && videoAnalysis.summary!=undefined && videoAnalysis.summary!=null && Object.prototype.toString.call(videoAnalysis.summary) == '[object Array]') ?
-            <div class="col">
+            <div class="col" style={{backgroundColor: "#f0f0f0", borderRadius: "5px", padding: "10px"}}>
                 {videoAnalysis.summary.map((summary_text)=>(
                   <div class="text-left">
                     <hr style={{ color: "white", backgroundColor: "grey", height: "2px" }} />
@@ -999,11 +1016,11 @@ const getAnalysisForm = () => {
             <div class="p-flex">
               <hr style={{ color: "white", backgroundColor: "grey", height: "2px" }}/>
               <div class="d-flex align-items-center">
-                <TbMessageQuestion color="red"/>
+                <p><TbMessageQuestion color="red"/></p>
                 <a class="nav-link h5">{question.question}</a>
               </div>
               <div class="d-flex align-items-center">
-                <div class="p-2 bd-highlight mx-4">
+                <div class="p-2 bd-highlight mx-4" style={{backgroundColor: "#f0f0f0", borderRadius: "5px", padding: "10px"}}>
                   <a>{addLineBreak(question.answer.answer)}</a>
                 </div>
               </div>
@@ -1151,6 +1168,16 @@ const getNestedSettingDropDown = () => {
 const getSearchForm = () => {
   return (
   <form class="form-horizontal container" role="form">
+    <div class="form-group justify-content-between">
+          <div class="col-md-4">
+          </div>
+          <div class="col-md-auto">
+            <div class="row-md-4">Search on Youtube</div>
+          </div>
+          <div class="col-md-4">
+            {/* {getSampleTransition()} */}
+          </div>
+        </div>
   <div class="form-group row my-3">
     <div class="col-sm-10">
       <input type="text" class="form-control select2-offscreen" id="parentAdddress" placeholder="Search on Youtube" tabIndex="-1"
@@ -1170,6 +1197,16 @@ const getSearchForm = () => {
       <p class="justify-content-center">Token expired! Please login again <Link to="/login">here</Link></p>
     </div>
   }
+  <div class="d-flex align-items-center">
+      <div class="col-sm-auto">
+          <button disabled={videoSelectMapLength==0 || extractionLoading} class="btn btn-primary mx-1" onClick={(event) => extractVideoText(event)}>Extract Text</button>
+      </div>
+      {/* <div class="col-sm-1">
+      </div> */}
+      <div class="col-sm-auto">
+          <button disabled={Object.keys(commentData).length == 0 || summarizationLoading || QALoading} class="btn btn-primary mx-1" onClick={(event) => analyzeVideoInformation(event)}>Get Analysis</button>
+      </div>
+  </div>
 </form>
   );
 }
@@ -1188,11 +1225,13 @@ const getCustomQuestionForm = () => {
         <button disabled={!searchQuestions} class="btn btn-primary mx-1" onClick={(event) => getCustomQuestionAnswer(event)}>Get Answer</button>
     </div>
   </div>
+  <div style={{backgroundColor: "#f0f0f0", borderRadius: "5px", padding: "10px"}}>
   {Object.keys(CustomQAAnalysis).length>0 && !CustomQAError &&
   <a>
     {addLineBreak(CustomQAAnalysis?.questions[0]?.answer?.answer)}
   </a>
   }
+  </div>
   {CustomQAError &&
     <div class="form-group mx-3">
       <p class="justify-content-center">{CustomQAError}</p>
@@ -1204,20 +1243,22 @@ const getCustomQuestionForm = () => {
 
   return (
     <div class="form-horizontal container" role="form">
-        <div class="form-group justify-content-between">
-          <div class="col-md-4">
-          </div>
-          <div class="col-md-auto">
-            <div class="row-md-4">Search on Youtube</div>
-          </div>
-          <div class="col-md-4">
-            {/* {getSampleTransition()} */}
-          </div>
-        </div>
+        {getNavBarModules()}
         <hr/>
-        {getSearchForm()}
-        {getAnalysisForm()}
-        {getVideoListForm()}
+
+        {selectedModule == "Videos" && 
+        <div>
+          {getSearchForm()}
+          {getVideoListForm()}
+        </div>
+        }
+        {selectedModule == "Summary" && getAnalysisForm()}
+        {/* {!(Object.keys(commentData).length == 0 || summarizationLoading || QALoading) && (textExtractionisError == "") &&  */}
+        {/* {true && 
+          
+        } */}
+        {selectedModule == "Custom Questions" && getCustomQuestionForm()
+        }
       </div>
   )
 }
