@@ -50,6 +50,7 @@ const SearchScreen = ({token, setToken, setActiveUser, activeuser}) => {
 
 
     const [searchText, setSearchText] = useState('');
+    const [searchQuestions, setSearchQuestions] = useState('');
     const [videoArray, setVideoArray] = useState([]);
     const [videoSelectMap, setVideoSelectMap] = useState({});
     const [videoSelectMapLength, setVideoSelectMapLength] = useState(0);
@@ -72,6 +73,10 @@ const SearchScreen = ({token, setToken, setActiveUser, activeuser}) => {
     const [videoAnalysisError, setVideoAnalysisError] = useState("");
 
     const [authToken, setAuthToken] = useState("");
+    //Custom QA Model
+    const [CustomQALoading, setCustomQALoading] = useState(false);
+    const [CustomQAAnalysis, setCustomQAAnalysis] = useState({});
+    const [CustomQAError, setCustomQAError] = useState("");
     
 //######################
     
@@ -84,9 +89,9 @@ const SearchScreen = ({token, setToken, setActiveUser, activeuser}) => {
 
     const firstTimeSearchDelay = 500; //ms
 
-    const [selectedSummaryModel, setSelectedSummaryModel] = useState("Extractive - SumyLexRankSummarizer");
+    const [selectedSummaryModel, setSelectedSummaryModel] = useState("Generative - Llama3");
 
-    const [selectedQAModel, setSelectedQAModel] = useState("DistilbertQuestionAnswering");
+    const [selectedQAModel, setSelectedQAModel] = useState("Generative - Llama3-RAG");
 
     const [fullVideoObject, setFullVideoObject] = useState({});
 
@@ -495,7 +500,7 @@ const SearchScreen = ({token, setToken, setActiveUser, activeuser}) => {
         'Authorization': workingToken.token_type + " " + workingToken.access_token
       },
       body: JSON.stringify({
-        "texts": commentData.statements,
+        "texts": commentData.texts,
         "summModel": selectedSummaryModel
        })
      }).then(response => response.json())
@@ -525,6 +530,68 @@ const SearchScreen = ({token, setToken, setActiveUser, activeuser}) => {
     });
   }
 
+  const getCustomQuestionAnswer = async (event) => {
+    event.preventDefault();
+    setCustomQALoading(true);
+    setCustomQAAnalysis({});
+    console.log("analyzing - " + searchText);
+    // var queryUrl = commentAnalysisUrl;
+    console.log({
+      "context": [],
+      "questions": [searchQuestions],
+      "qaModel": selectedQAModel,
+      "username": activeuser
+     });
+    //  console.log();
+    let workingToken = await checkAndUpdateToken();
+    console.log("workingToken");
+    console.log(workingToken);
+     
+    fetch(questionAnsweringUrl, {
+      method: 'post',
+      headers: {
+        'Content-Type':'application/json',
+        'Authorization': workingToken.token_type + " " + workingToken.access_token
+      },
+      body: JSON.stringify({
+        "context": [],
+        "questions": [searchQuestions],
+        "qaModel": selectedQAModel,
+        "username": activeuser
+       })
+     }).then(response => response.json())
+     .then(data => {
+        // console.log("Printing Status Response");
+        // console.log(data.status);
+        // console.log(!data.ok);
+       console.log("analyzed results - ");
+       console.log(data);
+       console.log(isNaN(data.question));
+      //  if (!isNaN(data.question)){
+        setCustomQALoading(false);
+        // setQAExtractionList(true);
+        // setToggleAnalysisList(true);
+        setCustomQAAnalysis({"questions" : data});
+        setCustomQAError("");
+        console.log("data");
+        console.log(data);
+        console.log(data[0]?.answer?.answer);
+        
+        console.log("Object.keys(QAAnalysis).length");
+        console.log(Object.keys(CustomQAAnalysis).length);
+        // console.log("QAAnalysis.questions.length");
+        // console.log(QAAnalysis.questions.length);
+     })
+     .catch(error => {
+      console.log("ERROR Occurred - ");
+      console.error(error);
+      setCustomQALoading(false);
+      setCustomQAError("Error! Could not process the QA request!");
+      console.log(isNaN(CustomQAAnalysis.question));
+      console.log(CustomQAAnalysis.questions?.length);
+    });
+  }
+
   const getQuestionAnswer = async (event) => {
     // event.preventDefault();
     setQALoading(true);
@@ -539,7 +606,7 @@ const SearchScreen = ({token, setToken, setActiveUser, activeuser}) => {
     console.log({
       "context": commentData.statements,
       "questions": commentData.questions,
-      "qaModel": "DistilbertQuestionAnswering"
+      "qaModel": selectedQAModel
      });
     //  console.log();
     let workingToken = await checkAndUpdateToken();
@@ -555,7 +622,7 @@ const SearchScreen = ({token, setToken, setActiveUser, activeuser}) => {
       body: JSON.stringify({
         "context": commentData.statements,
         "questions": commentData.questions,
-        "qaModel": "DistilbertQuestionAnswering",
+        "qaModel": selectedQAModel,
         "username": activeuser
        })
      }).then(response => response.json())
@@ -831,6 +898,20 @@ const getVideoList = () => {
   )
 }
 
+const addLineBreak = (str) => {
+  if (!str){
+    return "";
+  }
+  return str.split('\n').map((subStr) => {
+    return (
+      <>
+        {subStr}
+        <br />
+      </>
+    );
+  });
+}
+
 const getAnalysisForm = () => {
   return (
     <div class="form-group row my-3 py-3 justify-content-center">
@@ -877,6 +958,10 @@ const getAnalysisForm = () => {
               getWarningMessage(textExtractionisError)
             }
         </div>
+        {/* {!(Object.keys(commentData).length == 0 || summarizationLoading || QALoading) && (textExtractionisError == "") &&  */}
+        {true && 
+          getCustomQuestionForm()
+        }
         {Object.keys(videoAnalysis).length>0 &&
           <div>
             <hr style={{ color: "white", backgroundColor: "grey", height: "2px" }} />
@@ -892,7 +977,7 @@ const getAnalysisForm = () => {
                 {videoAnalysis.summary.map((summary_text)=>(
                   <div class="text-left">
                     <hr style={{ color: "white", backgroundColor: "grey", height: "2px" }} />
-                    {summary_text}
+                    {addLineBreak(summary_text)}
                     </div>
                   
                   )
@@ -919,7 +1004,7 @@ const getAnalysisForm = () => {
               </div>
               <div class="d-flex align-items-center">
                 <div class="p-2 bd-highlight mx-4">
-                  <a>{question.answer.answer}</a>
+                  <a>{addLineBreak(question.answer.answer)}</a>
                 </div>
               </div>
           </div>
@@ -1083,6 +1168,34 @@ const getSearchForm = () => {
   {tokenExpired &&
     <div class="form-group mx-3">
       <p class="justify-content-center">Token expired! Please login again <Link to="/login">here</Link></p>
+    </div>
+  }
+</form>
+  );
+}
+
+const getCustomQuestionForm = () => {
+  return (
+  <form class="form-horizontal container" role="form">
+  <div class="form-group row my-3">
+    <div class="col-sm-10">
+    <input type="text" class="form-control select2-offscreen" id="parentAdddress" placeholder="Type Question" tabIndex="-1"
+            value={searchQuestions} 
+            onChange={(event) => setSearchQuestions(event.target.value)}
+        />
+    </div>
+    <div class="col-sm-2">
+        <button disabled={!searchQuestions} class="btn btn-primary mx-1" onClick={(event) => getCustomQuestionAnswer(event)}>Get Answer</button>
+    </div>
+  </div>
+  {Object.keys(CustomQAAnalysis).length>0 && !CustomQAError &&
+  <a>
+    {addLineBreak(CustomQAAnalysis?.questions[0]?.answer?.answer)}
+  </a>
+  }
+  {CustomQAError &&
+    <div class="form-group mx-3">
+      <p class="justify-content-center">{CustomQAError}</p>
     </div>
   }
 </form>

@@ -127,7 +127,7 @@ function Login({setToken, setActiveUser}) {
 
                 <div class="d-flex justify-content-left my-3">
                     <input value = "test" class = "align-items-stretch" type = "checkbox" checked={keepSignedIn} onChange = {() => {setKeepSignedIn(!keepSignedIn)}} />
-                    Keep me signed in
+                     Keep me signed in
                 </div>
 
                 <Button variant="primary" type="submit" className="login-button">
